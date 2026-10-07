@@ -19,7 +19,7 @@ from anima.core.inventory import InventoryStore
 from anima.core.jobs import PluginJobManager
 from anima.core.telemetry import emit
 from anima.adapters.dashboard.localization import (
-    SUPPORTED_LOCALES, message, normalize_locale, render_asset,
+    SUPPORTED_LOCALES, locale_from_cookie, message, normalize_locale, render_asset,
 )
 
 
@@ -39,11 +39,11 @@ CONFIG_DOCUMENTS = {
 }
 
 
-def dashboard_branding(root: Path) -> dict[str, str]:
+def dashboard_branding(root: Path, *, locale: str | None = None) -> dict[str, str]:
     """Read bounded presentation metadata owned by the deployed persona."""
     value = _read_json(root / "dashboard.json")
     result = dict(DEFAULT_BRANDING)
-    result["locale"] = normalize_locale(value.get("locale"))
+    result["locale"] = normalize_locale(locale if locale in SUPPORTED_LOCALES else value.get("locale"))
     result["memory_guide"] = message(result["memory_guide"], result["locale"])
     for key, limit in (("browser_title", 80), ("heading", 80), ("eyebrow", 80),
                        ("memory_guide", 240)):
@@ -100,16 +100,20 @@ class DashboardData:
     """Read only; every detail request resolves to one existing sandbox."""
 
     def __init__(self, root, state_root, *, default=None, policy=None, effective_config=None,
-                 reload_configuration=None):
+                 reload_configuration=None, locale=None):
         self.root, self.state_root = root, state_root
         self.default = default
         self.policy = policy or ActivityPolicy()
         self.activity_modes = ActivityModeStore(state_root)
         self.effective_config = effective_config
         self._reload_configuration = reload_configuration
+        self.locale = locale
+
+    def branding(self):
+        return dashboard_branding(self.root, locale=self.locale)
 
     def scopes(self):
-        locale = dashboard_branding(self.root)["locale"]
+        locale = self.branding()["locale"]
         runtime = _read_json(self.state_root / "runtime" / "status.json")
         names = runtime.get("sandbox_names", {})
         activity = runtime.get("activity")
@@ -136,7 +140,7 @@ class DashboardData:
         return {
             "sandboxes": items,
             "default": default,
-            "branding": dashboard_branding(self.root),
+            "branding": self.branding(),
         }
 
     def resolve(self, requested):
@@ -153,7 +157,7 @@ class DashboardData:
         sandbox_key = SandboxKey.parse(selected["key"])
         sandbox_root = sandbox_key.path(self.state_root)
         result = collect_status(self.root, state_root=self.state_root, sandbox=selected["key"])
-        locale = dashboard_branding(self.root)["locale"]
+        locale = self.branding()["locale"]
         result["memory_contents"] = memory_contents(sandbox_root, locale=locale)
         for plugin in result.get("plugins", []):
             plugin["description"] = message(plugin.get("description", ""), locale)
@@ -250,7 +254,7 @@ class DashboardData:
         return {"deleted": True, "artifact_id": str(artifact_id), "location": removed}
 
     def configuration(self, *, writable: bool) -> dict[str, object]:
-        locale = dashboard_branding(self.root)["locale"]
+        locale = self.branding()["locale"]
         documents = []
         for document_id, (filename, label, format_name, limit) in CONFIG_DOCUMENTS.items():
             path = self.root / filename
@@ -313,7 +317,7 @@ class DashboardData:
         }
 
     def runtime_configuration(self, *, writable: bool) -> dict[str, object]:
-        locale = dashboard_branding(self.root)["locale"]
+        locale = self.branding()["locale"]
         saved = load_runtime_config(self.root / "config.json")
         current = {field.key: list(field.default) if field.kind in {"list", "multi"} else field.default for field in FIELDS}
         current.update(self.effective_config or {})
@@ -616,22 +620,30 @@ def _handler(root: Path, state_root: Path, *, sandbox: str | None = None, policy
                          effective_config=effective_config,
                          reload_configuration=reload_configuration)
     class DashboardHandler(BaseHTTPRequestHandler):
+        def _viewer_locale(self):
+            return locale_from_cookie(getattr(self, "headers", {}).get("Cookie"))
+
         def do_GET(self) -> None:  # noqa: N802
+            # Per-request data avoids sharing a viewer language across threads.
+            viewer_locale = self._viewer_locale()
+            localized_data = DashboardData(root, state_root, default=sandbox, policy=policy,
+                effective_config=effective_config, reload_configuration=reload_configuration,
+                locale=viewer_locale)
             parsed = urlparse(self.path)
             path = parsed.path
             if path in {"/api/sandboxes", "/api/status", "/api/events", "/api/config", "/api/settings"}:
                 try:
                     if path == "/api/sandboxes":
-                        value = data.scopes()
+                        value = localized_data.scopes()
                     elif path == "/api/config":
-                        value = data.configuration(writable=bool(admin_token))
+                        value = localized_data.configuration(writable=bool(admin_token))
                     elif path == "/api/settings":
-                        value = data.runtime_configuration(writable=bool(admin_token))
+                        value = localized_data.runtime_configuration(writable=bool(admin_token))
                     else:
                         query = parse_qs(parsed.query, keep_blank_values=True).get("sandbox", [])
                         if len(query) != 1:
                             raise ValueError("exactly one sandbox is required")
-                        value = data.status(query[0]) if path == "/api/status" else data.events(query[0])
+                        value = localized_data.status(query[0]) if path == "/api/status" else localized_data.events(query[0])
                     self._json(value)
                 except ValueError:
                     self._json({"error": "表示対象が不正、未指定、または存在しません"}, status=400)
@@ -649,7 +661,7 @@ def _handler(root: Path, state_root: Path, *, sandbox: str | None = None, policy
                 return
             body = (ASSET_DIR / asset[0]).read_bytes()
             if asset[0] in {"index.html", "dashboard.js"}:
-                body = render_asset(body.decode("utf-8"), dashboard_branding(root)["locale"],
+                body = render_asset(body.decode("utf-8"), dashboard_branding(root, locale=viewer_locale)["locale"],
                                     script=asset[0] == "dashboard.js").encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", asset[1])
@@ -777,7 +789,7 @@ def _handler(root: Path, state_root: Path, *, sandbox: str | None = None, policy
 
         def _json(self, value: object, *, status=200) -> None:
             if isinstance(value, dict) and isinstance(value.get("error"), str):
-                value = dict(value, error=message(value["error"], dashboard_branding(root)["locale"]))
+                value = dict(value, error=message(value["error"], dashboard_branding(root, locale=self._viewer_locale())["locale"]))
             body = json.dumps(value, ensure_ascii=False).encode()
             self.send_response(status)
             self.send_header("Content-Type", "application/json; charset=utf-8")

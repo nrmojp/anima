@@ -5,12 +5,55 @@ import re
 import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
+from http.cookies import CookieError
 
-from anima.adapters.dashboard.localization import catalogs, message, normalize_locale, render_asset, TOKEN
+from anima.adapters.dashboard.localization import catalogs, message, normalize_locale, render_asset, locale_from_cookie, TOKEN
 from anima.adapters.dashboard.server import ASSET_DIR, DashboardData, dashboard_branding, _handler, memory_contents
 
 
 class DashboardLocalizationTests(unittest.TestCase):
+    def test_viewer_cookie_is_allowlisted_and_tolerates_malformed_headers(self):
+        for header in (None, 1, {}, "", "other=ja", "anima_dashboard_locale=fr", "anima_dashboard_locale=", "invalid cookie"):
+            self.assertIsNone(locale_from_cookie(header))
+        self.assertEqual(locale_from_cookie('other=x; anima_dashboard_locale=en'), 'en')
+        self.assertEqual(locale_from_cookie('anima_dashboard_locale="ja"'), 'ja')
+        with patch('anima.adapters.dashboard.localization.SimpleCookie') as cookie:
+            cookie.return_value.load.side_effect = CookieError('invalid')
+            self.assertIsNone(locale_from_cookie('bad'))
+
+    def test_cookie_language_is_per_viewer_without_changing_bot_configuration(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / 'dashboard.json'
+            original = '{"locale":"ja","heading":"User-owned title"}'
+            path.write_text(original)
+            handler = _handler(root, root)
+            def get(url, cookie=None):
+                instance = handler.__new__(handler)
+                instance.path = url
+                instance.headers = {'Cookie':cookie} if cookie else {}
+                instance.wfile = BytesIO()
+                instance.send_response = MagicMock()
+                instance.send_header = MagicMock()
+                instance.end_headers = MagicMock()
+                instance.do_GET()
+                return instance.wfile.getvalue().decode()
+            for cookie, locale in [('anima_dashboard_locale=en','en'), (None,'ja'), ('anima_dashboard_locale=ja','ja'), ('anima_dashboard_locale=unknown','ja')]:
+                page = get('/',cookie)
+                self.assertIn(f'lang="{locale}"',page)
+                self.assertIn('id="language-select"',page)
+                self.assertIn('<option value="ja" lang="ja">日本語</option>',page)
+                self.assertIn("'en-US'" if locale=='en' else "'ja-JP'",get('/dashboard.js',cookie))
+                branding = json.loads(get('/api/sandboxes',cookie))['branding']
+                self.assertEqual(branding['locale'],locale)
+                self.assertEqual(branding['heading'],'User-owned title')
+                label = json.loads(get('/api/config',cookie))['documents'][0]['label']
+                self.assertEqual(label,'Persona' if locale=='en' else 'ペルソナ')
+                error = json.loads(get('/api/status',cookie))['error']
+                self.assertIn('Display scope' if locale=='en' else '表示対象',error)
+            self.assertEqual(path.read_text(),original)
+            self.assertEqual(dashboard_branding(root)['locale'],'ja')
+
     def test_default_and_supported_locales(self):
         for value in (None, "", "fr", "ja-JP", 1, [], {}):
             self.assertEqual(normalize_locale(value), "en")
@@ -32,7 +75,7 @@ class DashboardLocalizationTests(unittest.TestCase):
                 value = render_asset(template, locale, script=filename.endswith(".js"))
                 self.assertNotIn("__ANIMA_I18N_", value)
                 if locale == "en":
-                    self.assertNotRegex(value, r"[ぁ-んァ-ヶ一-龯]")
+                    self.assertNotRegex(value.replace('<option value="ja" lang="ja">日本語</option>', ''), r"[ぁ-んァ-ヶ一-龯]")
             if filename == "index.html":
                 self.assertIn('lang="en"', render_asset(template, "en"))
                 self.assertIn('lang="ja"', render_asset(template, "ja"))

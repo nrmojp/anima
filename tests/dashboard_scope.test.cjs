@@ -40,11 +40,29 @@ function harness(desktop=false,locale='ja'){
   const menu=element(),groups=Array.from({length:4},()=>element());
   const media={matches:desktop,addEventListener(name,fn){this[name]=fn}};
   const context=vm.createContext({matchMedia:()=>media,document:{getElementById:get,createElement:element,createElementNS:element,querySelector:selector=>selector==='.section-menu'?menu:element(),querySelectorAll:()=>groups},
-    location:{search:'',href:'http://localhost/'},history:{replaceState(){}},URL,URLSearchParams,Intl,Date,
+    location:{search:'',href:'http://localhost/',protocol:'http:',reload(){this.reloads=(this.reloads||0)+1}},history:{replaceState(){}},URL,URLSearchParams,Intl,Date,
     setInterval(){},fetch(url,options){return new Promise(resolve=>pending.push({url,options,resolve}))}});
   vm.runInContext(localizedSource(locale),context);
   return {context,get,pending,menu,groups,media};
 }
+test('header language change persists only a viewer cookie and reloads without admin calls',()=>{
+  const h=harness(false,'ja'),select=h.get('language-select');
+  assert.equal(select.value,'ja');
+  select.value='ja';select.change();
+  assert.equal(h.context.location.reloads,undefined);
+  select.value='fr';select.change();
+  assert.equal(h.context.document.cookie,undefined);
+  select.value='en';select.change();
+  assert.equal(h.context.location.reloads,1);
+  assert.match(h.context.document.cookie,/anima_dashboard_locale=en; Path=\/; Max-Age=31536000; SameSite=Lax$/);
+  assert.equal(h.pending.length,1); // only initial read-only catalog request
+  assert.ok(h.pending.every(request=>!request.options?.method));
+  const english=harness(false,'en');
+  assert.equal(english.get('language-select').value,'en');
+  english.context.location.protocol='https:';
+  english.get('language-select').value='ja';english.get('language-select').change();
+  assert.match(english.context.document.cookie,/anima_dashboard_locale=ja.*; Secure$/);
+});
 test('navigation exposes desktop index and collapses independently on narrow screens',()=>{
   const h=harness(true);
   assert.ok(h.groups.every(g=>g.open));

@@ -5,6 +5,14 @@ existing features, sandbox selection, and plugin-provided panels and menus.
 
 ## Language and presentation
 
+Use the Language selector next to the clock in the header for Japanese or English.
+This viewer-only preference is stored in a one-year, same-site browser cookie;
+the page reloads immediately and keeps the selected sandbox URL. No admin token,
+server configuration write, model call, or container restart is needed. It does
+not change another viewer's language. HTML, JavaScript, API labels, and errors all
+use the same allowlisted cookie preference. Unsupported/malformed cookies are ignored.
+Request-local data prevents language preferences leaking across concurrent viewers.
+
 The default dashboard language is English. Set `"locale": "ja"` in the deployed
 persona's `dashboard.json` for Japanese, or `"locale": "en"` for English.
 Unsupported values fall back to English when reading; the configuration editor
@@ -18,7 +26,10 @@ stored data or translate conversation, memory, logs, filenames, or custom brandi
 Extension-owned labels remain as supplied unless they match a registered UI label.
 Keep persona-specific descriptions in the consumer repository, not this catalog.
 
-Reload the browser after changing language. Other branding changes still refresh
+The header selector reloads the browser automatically. For changes to the default
+language in the admin editor, reload the browser manually; an existing viewer
+cookie takes precedence. Clear that cookie to return to the configured default.
+Other branding changes still refresh
 normally. No model or external translation API is involved.
 
 ## References

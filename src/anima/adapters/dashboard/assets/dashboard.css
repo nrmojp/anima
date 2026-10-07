@@ -235,3 +235,10 @@ main{width:min(1440px,calc(100% - 64px));padding:24px 0 48px}
   .masthead{align-items:start;gap:8px;flex-wrap:wrap}
   .grid{grid-template-columns:minmax(0,1fr)}
 }
+
+/* Viewer language belongs with the header clock, not the admin editor. */
+.header-controls{display:flex;align-items:center;justify-content:flex-end;gap:24px;flex-wrap:wrap}
+.language-control{display:flex;align-items:center;gap:8px;font:400 13px/1.5 "Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;color:var(--muted)}
+.language-control select{min-height:36px;min-width:112px;padding:4px 8px;border:1px solid var(--line);border-radius:4px;background:#fff;color:var(--ink);font:inherit}
+.language-control select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+@media(max-width:767px){.masthead{gap:12px;flex-wrap:wrap}.header-controls{justify-content:flex-start;gap:12px}.language-control select{min-height:40px}.header-controls .clock{margin:0}}

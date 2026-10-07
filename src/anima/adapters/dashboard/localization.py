@@ -5,9 +5,24 @@ import html
 import json
 from pathlib import Path
 import re
+from http.cookies import CookieError, SimpleCookie
 
 SUPPORTED_LOCALES = ("en", "ja")
 TOKEN = re.compile(r"__ANIMA_I18N_([a-z0-9_]+)__")
+LOCALE_COOKIE = "anima_dashboard_locale"
+
+
+def locale_from_cookie(header: object) -> str | None:
+    """Read a viewer preference, ignoring malformed or unsupported cookies."""
+    if not isinstance(header, str):
+        return None
+    cookies = SimpleCookie()
+    try:
+        cookies.load(header)
+    except CookieError:
+        return None
+    candidate = cookies.get(LOCALE_COOKIE)
+    return candidate.value if candidate and candidate.value in SUPPORTED_LOCALES else None
 
 
 def normalize_locale(value: object) -> str:
