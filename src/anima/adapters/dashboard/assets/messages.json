@@ -400,7 +400,9 @@
     "open_paren": "(",
     "close_paren": ")",
     "close_quote": "”",
-    "category_retention": "Retention"
+    "category_retention": "Retention",
+    "language_label": "Language",
+    "language_japanese": "日本語"
   },
   "ja": {
     "skip_to_dashboard_content_63a335ff": "ダッシュボードの内容へ",
@@ -803,6 +805,8 @@
     "open_paren": "（",
     "close_paren": "）",
     "close_quote": "」",
-    "category_retention": "保存"
+    "category_retention": "保存",
+    "language_label": "言語",
+    "language_japanese": "日本語"
   }
 }

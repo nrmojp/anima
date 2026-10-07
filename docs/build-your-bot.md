@@ -61,6 +61,8 @@ To brand the dashboard, optionally create `config/dashboard.json`:
 
 The dashboard defaults to English. Use `"locale": "ja"` for Japanese. This changes
 the interface and date/number formatting, not the persona or memory contents.
+Viewers can override this default using the Language selector in the header.
+Their choice is saved in their browser without an admin token or server changes.
 
 ## 3. Configure a first text-only bot
 

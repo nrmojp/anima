@@ -11,7 +11,12 @@
   <main>
     <header class="masthead">
       <div><p class="eyebrow" id="dashboard-eyebrow">ANIMA / LOCAL OBSERVATORY</p><h1 id="dashboard-heading">Anima Observatory</h1></div>
-      <p class="clock" id="clock">--:--:--</p>
+      <div class="header-controls">
+        <label class="language-control" for="language-select"><span>__ANIMA_I18N_language_label__</span>
+          <select id="language-select"><option value="ja" lang="ja">__ANIMA_I18N_language_japanese__</option><option value="en" lang="en">English</option></select>
+        </label>
+        <p class="clock" id="clock">--:--:--</p>
+      </div>
     </header>
     <section class="scope-panel" aria-label="__ANIMA_I18N_display_scope_c899e822__">
       <label for="sandbox-select">__ANIMA_I18N_observe_a_sandbox_687efc0f__</label>

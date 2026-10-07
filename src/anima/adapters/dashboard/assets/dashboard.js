@@ -1,4 +1,12 @@
 const $=id=>document.getElementById(id);const fmt=n=>new Intl.NumberFormat('__ANIMA_I18N_format_locale__').format(n||0);const dateTime=value=>value?new Date(value).toLocaleString('__ANIMA_I18N_format_locale__',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—';const ago=value=>{if(!value)return'__ANIMA_I18N_no_records_e5c08266__';const sec=Math.max(0,(Date.now()-new Date(value))/1000);if(sec<60)return`${Math.round(sec)}__ANIMA_I18N_s_ago_e84bc830__`;if(sec<3600)return`${Math.round(sec/60)}__ANIMA_I18N_m_ago_a374e0f5__`;return`${Math.round(sec/3600)}__ANIMA_I18N_h_ago_930f85e6__`};
+const dashboardLanguage='__ANIMA_I18N_language__';
+$('language-select').value=dashboardLanguage;
+$('language-select').addEventListener('change',()=>{
+  const language=$('language-select').value;
+  if(!['en','ja'].includes(language)||language===dashboardLanguage)return;
+  document.cookie=`anima_dashboard_locale=${language}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol==='https:'?'; Secure':''}`;
+  location.reload();
+});
 function usageList(id,values,{byDate=false}={}){const list=$(id);list.replaceChildren();const rows=Object.entries(values||{}).sort(byDate?(a,b)=>b[0].localeCompare(a[0]):(a,b)=>(b[1].total_tokens-a[1].total_tokens)||(b[1].image_count-a[1].image_count));for(const [name,value] of rows){const row=document.createElement('div'),term=document.createElement('dt'),detail=document.createElement('dd'),parts=[];term.textContent=name;if(value.total_tokens||value.requests)parts.push(`${fmt(value.total_tokens)} tokens / ${fmt(value.requests)}__ANIMA_I18N_requests_6da3e5c0__`);if(value.image_count)parts.push(`${fmt(value.image_count)}__ANIMA_I18N_images_828ac3fb__`);detail.textContent=parts.join(' / ')||'__ANIMA_I18N_no_records_e5c08266__';row.appendChild(term);row.appendChild(detail);list.appendChild(row)}if(!rows.length)list.innerHTML='<div><dt>—</dt><dd>__ANIMA_I18N_no_records_e5c08266__</dd></div>'}
 function renderBranding(value={}){document.title=value.browser_title||'Anima Operations';$('dashboard-heading').textContent=value.heading||'Anima Observatory';$('dashboard-eyebrow').textContent=value.eyebrow||'ANIMA / LOCAL OBSERVATORY';$('memory-guide').textContent=value.memory_guide||'__ANIMA_I18N_browse_the_currently_retained_memory_documents_7e51c574__'}
 let configDocuments=[],selectedConfig='';
