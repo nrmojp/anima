@@ -18,20 +18,24 @@ from anima.core.sandbox import SandboxKey, list_sandboxes
 from anima.core.inventory import InventoryStore
 from anima.core.jobs import PluginJobManager
 from anima.core.telemetry import emit
+from anima.adapters.dashboard.localization import (
+    SUPPORTED_LOCALES, message, normalize_locale, render_asset,
+)
 
 
 ASSET_DIR = Path(__file__).with_name("assets")
 DEFAULT_BRANDING = {
+    "locale": "en",
     "browser_title": "Anima Operations",
     "heading": "Anima Observatory",
     "eyebrow": "ANIMA / LOCAL OBSERVATORY",
-    "memory_guide": "現在保持している記憶文書を確認できます。",
+    "memory_guide": "Browse the currently retained memory documents.",
 }
 CONFIG_DOCUMENTS = {
-    "persona": ("persona.md", "ペルソナ", "markdown", 16000),
-    "rules": ("rules.md", "会話ルール", "markdown", 16000),
-    "appearance": ("appearance.md", "外見設定", "markdown", 16000),
-    "dashboard": ("dashboard.json", "ダッシュボード表示", "json", 4000),
+    "persona": ("persona.md", "Persona", "markdown", 16000),
+    "rules": ("rules.md", "Conversation rules", "markdown", 16000),
+    "appearance": ("appearance.md", "Appearance", "markdown", 16000),
+    "dashboard": ("dashboard.json", "Dashboard presentation", "json", 4000),
 }
 
 
@@ -39,6 +43,8 @@ def dashboard_branding(root: Path) -> dict[str, str]:
     """Read bounded presentation metadata owned by the deployed persona."""
     value = _read_json(root / "dashboard.json")
     result = dict(DEFAULT_BRANDING)
+    result["locale"] = normalize_locale(value.get("locale"))
+    result["memory_guide"] = message(result["memory_guide"], result["locale"])
     for key, limit in (("browser_title", 80), ("heading", 80), ("eyebrow", 80),
                        ("memory_guide", 240)):
         candidate = value.get(key)
@@ -47,7 +53,7 @@ def dashboard_branding(root: Path) -> dict[str, str]:
     return result
 
 
-def memory_contents(state: Path) -> dict[str, object]:
+def memory_contents(state: Path, *, locale: str = "en") -> dict[str, object]:
     """Return readable memory documents without following links outside state."""
     documents = []
     candidates = [state / "digest.md", state / "open.md", state / "habitus.md"]
@@ -78,7 +84,7 @@ def memory_contents(state: Path) -> dict[str, object]:
             "kind": kind,
             "title": next((line.lstrip("# ").strip() for line in content.splitlines()
                            if line.startswith(("## ", "# ")) and line.lstrip("# ").strip()),
-                          f"人物 {path.stem}" if kind == "people" else ""),
+                          f"{message('Person ', locale)}{path.stem}" if kind == "people" else ""),
             "person_id": path.stem if kind == "people" else None,
             "entries": sum(line.startswith("- ") for line in content.splitlines()),
             "lines": len(content.splitlines()) if content else 0,
@@ -103,6 +109,7 @@ class DashboardData:
         self._reload_configuration = reload_configuration
 
     def scopes(self):
+        locale = dashboard_branding(self.root)["locale"]
         runtime = _read_json(self.state_root / "runtime" / "status.json")
         names = runtime.get("sandbox_names", {})
         activity = runtime.get("activity")
@@ -118,7 +125,7 @@ class DashboardData:
                 "kind": key.kind,
                 "id": key.id,
                 "name": names.get(
-                    str(key), f"{'ギルド' if key.kind == 'guild' else 'DM相手' if key.kind == 'dm' else key.namespace} {key.id}"
+                    str(key), f"{message('ギルド' if key.kind == 'guild' else 'DM相手' if key.kind == 'dm' else key.namespace, locale)} {key.id}"
                 ),
                 "enabled": enabled,
                 "activity": activity,
@@ -146,7 +153,13 @@ class DashboardData:
         sandbox_key = SandboxKey.parse(selected["key"])
         sandbox_root = sandbox_key.path(self.state_root)
         result = collect_status(self.root, state_root=self.state_root, sandbox=selected["key"])
-        result["memory_contents"] = memory_contents(sandbox_root)
+        locale = dashboard_branding(self.root)["locale"]
+        result["memory_contents"] = memory_contents(sandbox_root, locale=locale)
+        for plugin in result.get("plugins", []):
+            plugin["description"] = message(plugin.get("description", ""), locale)
+        for panel in result.get("dashboard", {}).get("panels", []):
+            for field in ("title", "description"):
+                panel[field] = message(panel.get(field, ""), locale)
         inventory = InventoryStore(self.state_root, sandbox_key)
         items = inventory.list(include_temporary=True)
         result["inventory"] = {
@@ -237,6 +250,7 @@ class DashboardData:
         return {"deleted": True, "artifact_id": str(artifact_id), "location": removed}
 
     def configuration(self, *, writable: bool) -> dict[str, object]:
+        locale = dashboard_branding(self.root)["locale"]
         documents = []
         for document_id, (filename, label, format_name, limit) in CONFIG_DOCUMENTS.items():
             path = self.root / filename
@@ -244,7 +258,7 @@ class DashboardData:
             if path.is_file() and not path.is_symlink():
                 content = path.read_text(encoding="utf-8")
             documents.append({
-                "id": document_id, "label": label, "format": format_name,
+                "id": document_id, "label": message(label, locale), "format": format_name,
                 "content": content, "max_length": limit,
             })
         return {"writable": writable, "documents": documents}
@@ -263,8 +277,12 @@ class DashboardData:
                 raise ValueError("configuration JSON is invalid") from error
             if not isinstance(value, dict) or set(value) - set(DEFAULT_BRANDING):
                 raise ValueError("configuration JSON fields are invalid")
+            if "locale" in value and (not isinstance(value["locale"], str) or value["locale"] not in SUPPORTED_LOCALES):
+                raise ValueError("unsupported dashboard locale")
             for key, field_limit in (("browser_title", 80), ("heading", 80), ("eyebrow", 80),
                                      ("memory_guide", 240)):
+                if key not in value:
+                    continue
                 field = value.get(key)
                 if not isinstance(field, str) or not field.strip() or len(field) > field_limit:
                     raise ValueError("configuration JSON values are invalid")
@@ -295,6 +313,7 @@ class DashboardData:
         }
 
     def runtime_configuration(self, *, writable: bool) -> dict[str, object]:
+        locale = dashboard_branding(self.root)["locale"]
         saved = load_runtime_config(self.root / "config.json")
         current = {field.key: list(field.default) if field.kind in {"list", "multi"} else field.default for field in FIELDS}
         current.update(self.effective_config or {})
@@ -303,7 +322,8 @@ class DashboardData:
         return {
             "writable": writable,
             "restart_required": bool(saved) and values != current,
-            "fields": [field.public() for field in FIELDS],
+            "fields": [dict(field.public(), label=message(field.label, locale),
+                            category=message("Retention" if field.category == "保存" else field.category, locale)) for field in FIELDS],
             "values": values,
             "effective": current,
         }
@@ -628,6 +648,9 @@ def _handler(root: Path, state_root: Path, *, sandbox: str | None = None, policy
                 self.send_error(404)
                 return
             body = (ASSET_DIR / asset[0]).read_bytes()
+            if asset[0] in {"index.html", "dashboard.js"}:
+                body = render_asset(body.decode("utf-8"), dashboard_branding(root)["locale"],
+                                    script=asset[0] == "dashboard.js").encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", asset[1])
             self.send_header("Content-Length", str(len(body)))
@@ -753,6 +776,8 @@ def _handler(root: Path, state_root: Path, *, sandbox: str | None = None, policy
                 self._json({"error": "運用設定を保存できません"}, status=503)
 
         def _json(self, value: object, *, status=200) -> None:
+            if isinstance(value, dict) and isinstance(value.get("error"), str):
+                value = dict(value, error=message(value["error"], dashboard_branding(root)["locale"]))
             body = json.dumps(value, ensure_ascii=False).encode()
             self.send_response(status)
             self.send_header("Content-Type", "application/json; charset=utf-8")

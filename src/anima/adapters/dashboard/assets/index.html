@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja">
+<html lang="__ANIMA_I18N_language__">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -7,40 +7,40 @@
   <link rel="stylesheet" href="/dashboard.css">
 </head>
 <body>
-  <a class="skip-link" href="#dashboard-groups">ダッシュボードの内容へ</a>
+  <a class="skip-link" href="#dashboard-groups">__ANIMA_I18N_skip_to_dashboard_content_63a335ff__</a>
   <main>
     <header class="masthead">
       <div><p class="eyebrow" id="dashboard-eyebrow">ANIMA / LOCAL OBSERVATORY</p><h1 id="dashboard-heading">Anima Observatory</h1></div>
       <p class="clock" id="clock">--:--:--</p>
     </header>
-    <section class="scope-panel" aria-label="表示対象">
-      <label for="sandbox-select">観測する場所</label>
-      <select id="sandbox-select" disabled><option>読み込み中</option></select>
-      <p id="scope-name">表示対象を確認しています</p>
+    <section class="scope-panel" aria-label="__ANIMA_I18N_display_scope_c899e822__">
+      <label for="sandbox-select">__ANIMA_I18N_observe_a_sandbox_687efc0f__</label>
+      <select id="sandbox-select" disabled><option>__ANIMA_I18N_loading_f9508eca__</option></select>
+      <p id="scope-name">__ANIMA_I18N_checking_display_scope_afe824ce__</p>
       <p id="scope-detail" class="scope-detail" aria-live="polite">—</p>
       <p id="load-error" role="status"></p>
     </section>
     <section id="scoped-content" hidden>
-    <nav class="section-menu" aria-label="ダッシュボードの項目">
-      <span class="section-menu-label">見る場所</span>
-      <details><summary>いまの状態</summary><div><a href="#overview">接続と稼働状況</a><a href="#self-time">ひとりの時間</a><span id="plugin-menu-status"></span></div></details>
-      <details><summary>記憶と持ち物</summary><div><a href="#memory-section">記憶の書庫</a><a href="#inventory-section">手元にある物</a><span id="plugin-menu-memory"></span></div></details>
-      <details><summary>構成と設定</summary><div><a href="#plugins-section">能力の構成</a><a href="#resources-section">モデルが扱える資源</a><a href="#config-section">コアの固定設定</a><a href="#settings-section">Botの運用設定</a><span id="plugin-menu-configuration"></span></div></details>
-<details><summary>運用と診断</summary><div><a href="#usage">用途別の利用量</a><a href="#jobs-section">非同期処理</a><a href="#errors-section">エラー履歴</a><a href="#trace-section">最近の動き</a><a href="#plugin-logs-section">プラグイン詳細ログ</a><span id="plugin-menu-diagnostics"></span></div></details>
+    <nav class="section-menu" aria-label="__ANIMA_I18N_dashboard_navigation_1dd4bad5__">
+      <span class="section-menu-label">__ANIMA_I18N_navigate_3ad172f7__</span>
+      <details><summary>__ANIMA_I18N_current_status_bbf6b4c4__</summary><div><a href="#overview">__ANIMA_I18N_connection_and_runtime_52f1abdc__</a><a href="#self-time">__ANIMA_I18N_self_time_03b1aae6__</a><span id="plugin-menu-status"></span></div></details>
+      <details><summary>__ANIMA_I18N_memory_and_inventory_a893c622__</summary><div><a href="#memory-section">__ANIMA_I18N_memory_archive_8903bb11__</a><a href="#inventory-section">__ANIMA_I18N_inventory_ea85a5c1__</a><span id="plugin-menu-memory"></span></div></details>
+      <details><summary>__ANIMA_I18N_configuration_442bc438__</summary><div><a href="#plugins-section">__ANIMA_I18N_plugins_7810911a__</a><a href="#resources-section">__ANIMA_I18N_model_resources_f5414e0f__</a><a href="#config-section">__ANIMA_I18N_core_configuration_c3b14982__</a><a href="#settings-section">__ANIMA_I18N_bot_settings_f34184fb__</a><span id="plugin-menu-configuration"></span></div></details>
+<details><summary>__ANIMA_I18N_operations_and_diagnostics_e2a78927__</summary><div><a href="#usage">__ANIMA_I18N_usage_by_purpose_7d75979b__</a><a href="#jobs-section">__ANIMA_I18N_background_jobs_cdd99bc7__</a><a href="#errors-section">__ANIMA_I18N_error_history_3931a556__</a><a href="#trace-section">__ANIMA_I18N_recent_activity_7088b241__</a><a href="#plugin-logs-section">__ANIMA_I18N_plugin_detail_logs_45085eb8__</a><span id="plugin-menu-diagnostics"></span></div></details>
     </nav>
     <div id="dashboard-groups" tabindex="-1">
-      <section class="dashboard-group" id="group-status" aria-label="いまの状態"></section>
-      <section class="dashboard-group" id="group-memory" aria-label="記憶と持ち物"></section>
-      <section class="dashboard-group" id="group-configuration" aria-label="構成と設定"></section>
-      <section class="dashboard-group" id="group-diagnostics" aria-label="運用と診断"></section>
+      <section class="dashboard-group" id="group-status" aria-label="__ANIMA_I18N_current_status_bbf6b4c4__"></section>
+      <section class="dashboard-group" id="group-memory" aria-label="__ANIMA_I18N_memory_and_inventory_a893c622__"></section>
+      <section class="dashboard-group" id="group-configuration" aria-label="__ANIMA_I18N_configuration_442bc438__"></section>
+      <section class="dashboard-group" id="group-diagnostics" aria-label="__ANIMA_I18N_operations_and_diagnostics_e2a78927__"></section>
     </div>
     <section id="overview" class="presence" aria-labelledby="presence-title">
       <div class="core" id="core"><span class="core-dot"></span></div>
-      <div><p class="eyebrow" id="presence-title">BOT共通 / 接続状態</p><h2 id="presence">確認中</h2><p id="presence-detail">状態を読み込んでいます</p></div>
+      <div><p class="eyebrow" id="presence-title">__ANIMA_I18N_bot_connection_bdea06fe__</p><h2 id="presence">__ANIMA_I18N_checking_06256b0c__</h2><p id="presence-detail">__ANIMA_I18N_loading_status_c93f0acf__</p></div>
       <p class="updated" id="updated">—</p>
     </section>
-    <p class="eyebrow">以下は選択中のギルド／DMのみ</p>
-    <section class="grid" aria-label="選択した領域の稼働状況">
+    <p class="eyebrow">__ANIMA_I18N_the_following_data_belongs_to_the_selected_guild_e09b5a24__</p>
+    <section class="grid" aria-label="__ANIMA_I18N_runtime_status_of_the_selected_sandbox_e4c9e694__">
       <article><p class="label">MOOD</p><strong id="mood">—</strong><p id="focus">—</p></article>
       <article><p class="label">QUEUE</p><strong id="queue">—</strong><p id="queue-detail">—</p></article>
       <article><p class="label">OPENAI</p><strong id="tokens">—</strong><p id="requests">—</p></article>
@@ -58,158 +58,158 @@
       <div class="self-time-orbit" aria-hidden="true"><i></i><span>SELF</span></div>
       <div class="self-time-main">
         <div class="section-head self-time-head">
-          <div><p class="eyebrow">PRIVATE ACTIVITY / SELF TIME</p><h2 id="self-time-title">ひとりの時間</h2></div>
-          <span class="self-time-state" id="self-time-state">確認中</span>
+          <div><p class="eyebrow">PRIVATE ACTIVITY / SELF TIME</p><h2 id="self-time-title">__ANIMA_I18N_self_time_03b1aae6__</h2></div>
+          <span class="self-time-state" id="self-time-state">__ANIMA_I18N_checking_06256b0c__</span>
         </div>
-        <p class="self-time-lead" id="self-time-lead">話しかけられていない時間の活動記録を読み込んでいます。</p>
-        <ol class="self-time-journal" id="self-time-journal"><li class="empty">記録を読み込んでいます</li></ol>
+        <p class="self-time-lead" id="self-time-lead">__ANIMA_I18N_loading_activities_outside_conversations_0955237a__</p>
+        <ol class="self-time-journal" id="self-time-journal"><li class="empty">__ANIMA_I18N_loading_records_2d90ff79__</li></ol>
       </div>
       <dl class="self-time-facts">
-        <div><dt>今日の起動</dt><dd id="self-time-starts">—</dd></div>
-        <div><dt>最終開始</dt><dd id="self-time-last">—</dd></div>
-        <div><dt>直近の選択</dt><dd id="self-time-action">—</dd></div>
+        <div><dt>__ANIMA_I18N_starts_today_7f8209f7__</dt><dd id="self-time-starts">—</dd></div>
+        <div><dt>__ANIMA_I18N_last_start_3380d561__</dt><dd id="self-time-last">—</dd></div>
+        <div><dt>__ANIMA_I18N_latest_action_2a060de4__</dt><dd id="self-time-action">—</dd></div>
       </dl>
     </section>
     <section id="plugins-section" class="log-panel plugin-panel" aria-labelledby="plugin-title">
-      <div class="section-head"><div><p class="eyebrow">CAPABILITY PLUGINS</p><h2 id="plugin-title">能力の構成</h2></div><span class="pulse" id="plugin-summary">確認中</span></div>
-      <div id="plugins" class="plugin-grid"><p class="empty">Plugin状態を読み込んでいます</p></div>
+      <div class="section-head"><div><p class="eyebrow">CAPABILITY PLUGINS</p><h2 id="plugin-title">__ANIMA_I18N_plugins_7810911a__</h2></div><span class="pulse" id="plugin-summary">__ANIMA_I18N_checking_06256b0c__</span></div>
+      <div id="plugins" class="plugin-grid"><p class="empty">__ANIMA_I18N_loading_plugin_status_4c7d2e5e__</p></div>
     </section>
     <div id="plugin-panels" class="plugin-panel-stack" aria-live="polite"></div>
     <section id="config-section" class="log-panel config-panel" aria-labelledby="config-title">
-      <div class="section-head"><div><p class="eyebrow">CORE CONFIGURATION</p><h2 id="config-title">コアの固定設定</h2></div><button id="config-load" type="button">設定を開く</button></div>
-      <p class="guide-lead">ペルソナ、会話ルール、外見、ダッシュボード表示を一括管理します。秘密情報と実行中に育つ記憶は対象外です。</p>
+      <div class="section-head"><div><p class="eyebrow">CORE CONFIGURATION</p><h2 id="config-title">__ANIMA_I18N_core_configuration_c3b14982__</h2></div><button id="config-load" type="button">__ANIMA_I18N_open_settings_4be7d659__</button></div>
+      <p class="guide-lead">__ANIMA_I18N_manage_persona_conversation_rules_appearance_and_a380c2ea__</p>
       <div id="config-editor" hidden>
-        <div class="config-auth"><label for="config-token">管理トークン</label><input id="config-token" type="password" autocomplete="current-password"><span id="config-access">確認中</span></div>
-        <nav id="config-documents" class="config-tabs" aria-label="固定設定"></nav>
-        <label id="config-label" for="config-content">設定内容</label>
+        <div class="config-auth"><label for="config-token">__ANIMA_I18N_admin_token_119616a1__</label><input id="config-token" type="password" autocomplete="current-password"><span id="config-access">__ANIMA_I18N_checking_06256b0c__</span></div>
+        <nav id="config-documents" class="config-tabs" aria-label="__ANIMA_I18N_fixed_configuration_407dd1b9__"></nav>
+        <label id="config-label" for="config-content">__ANIMA_I18N_configuration_content_615fb94c__</label>
         <textarea id="config-content" spellcheck="false"></textarea>
-        <div class="config-actions"><span id="config-message" role="status"></span><button id="config-reload" type="button">設定を再読み込み</button><button id="config-save" type="button">保存</button></div>
+        <div class="config-actions"><span id="config-message" role="status"></span><button id="config-reload" type="button">__ANIMA_I18N_reload_configuration_a3e9f0e3__</button><button id="config-save" type="button">__ANIMA_I18N_save_a3030bf8__</button></div>
       </div>
     </section>
     <section id="settings-section" class="log-panel config-panel" aria-labelledby="settings-title">
-      <div class="section-head"><div><p class="eyebrow">BOT CONFIGURATION</p><h2 id="settings-title">Botの運用設定</h2></div><button id="settings-load" type="button">設定を開く</button></div>
-      <p class="guide-lead">モデル、プラグイン、Discord、音声、音楽、自発動作、保存期間を設定します。保存内容は次回起動時に反映されます。</p>
+      <div class="section-head"><div><p class="eyebrow">BOT CONFIGURATION</p><h2 id="settings-title">__ANIMA_I18N_bot_settings_f34184fb__</h2></div><button id="settings-load" type="button">__ANIMA_I18N_open_settings_4be7d659__</button></div>
+      <p class="guide-lead">__ANIMA_I18N_configure_models_plugins_discord_audio_music_pro_6e6d419a__</p>
       <div id="settings-editor" hidden>
-        <div class="config-auth"><label for="settings-token">管理トークン</label><input id="settings-token" type="password" autocomplete="current-password"><span id="settings-access">確認中</span></div>
+        <div class="config-auth"><label for="settings-token">__ANIMA_I18N_admin_token_119616a1__</label><input id="settings-token" type="password" autocomplete="current-password"><span id="settings-access">__ANIMA_I18N_checking_06256b0c__</span></div>
         <div id="settings-fields" class="settings-fields"></div>
-        <div class="config-actions"><span id="settings-message" role="status"></span><button id="settings-save" type="button">保存</button></div>
+        <div class="config-actions"><span id="settings-message" role="status"></span><button id="settings-save" type="button">__ANIMA_I18N_save_a3030bf8__</button></div>
       </div>
     </section>
     <section id="usage" class="log-panel usage-panel">
-      <div class="section-head"><div><p class="eyebrow">OPENAI USAGE</p><h2>用途別の利用量</h2></div><span class="pulse">選択領域の全運用ログ</span></div>
+      <div class="section-head"><div><p class="eyebrow">OPENAI USAGE</p><h2>__ANIMA_I18N_usage_by_purpose_7d75979b__</h2></div><span class="pulse">__ANIMA_I18N_all_operational_logs_for_this_sandbox_4ad30561__</span></div>
       <aside class="usage-current" aria-labelledby="usage-current-title">
         <div><p class="label" id="usage-current-title">LATEST RESPONSE</p><strong id="usage-current-total">—</strong><span>tokens</span></div>
         <dl>
-          <div><dt>入力</dt><dd id="usage-current-input">—</dd></div>
-          <div><dt>出力</dt><dd id="usage-current-output">—</dd></div>
-          <div><dt>用途・モデル</dt><dd id="usage-current-meta">記録なし</dd></div>
-          <div><dt>完了</dt><dd id="usage-current-time">—</dd></div>
+          <div><dt>__ANIMA_I18N_input_c52a9d8f__</dt><dd id="usage-current-input">—</dd></div>
+          <div><dt>__ANIMA_I18N_output_d38a2a54__</dt><dd id="usage-current-output">—</dd></div>
+          <div><dt>__ANIMA_I18N_purpose_model_90ae3088__</dt><dd id="usage-current-meta">__ANIMA_I18N_no_records_e5c08266__</dd></div>
+          <div><dt>__ANIMA_I18N_completed_10316394__</dt><dd id="usage-current-time">—</dd></div>
         </dl>
       </aside>
-      <div class="context-usage"><h3>プラグインのコンテキスト占有量</h3><p class="empty">最新リクエストの送信JSON文字数。入力トークン数ではありません。履歴・実行結果・共有定義はコアに含みます。</p><div id="context-usage"></div></div>
-      <section class="token-history"><h3>入力トークンの推移</h3><label>用途 <select id="usage-history-operation"><option value="respond">会話</option><option value="self_time">Self time</option><option value="">すべて</option></select></label><p class="empty">直近500イベント内の最新100応答。1点は応答1件の合計入力（複数ラウンドを含む）。点に触れると日時・モデル・入力数を表示します。</p><div id="usage-history-chart"></div><p id="usage-history-summary"></p></section>
+      <div class="context-usage"><h3>__ANIMA_I18N_plugin_context_usage_9c9967ef__</h3><p class="empty">__ANIMA_I18N_json_character_count_of_the_latest_request_not_i_4225b246__</p><div id="context-usage"></div></div>
+      <section class="token-history"><h3>__ANIMA_I18N_input_token_history_11dd547e__</h3><label>__ANIMA_I18N_purpose_fd091886__<select id="usage-history-operation"><option value="respond">__ANIMA_I18N_conversation_098eb2e3__</option><option value="self_time">Self time</option><option value="">__ANIMA_I18N_all_b55eb06d__</option></select></label><p class="empty">__ANIMA_I18N_latest_100_responses_within_the_last_500_events__fe53a3f5__</p><div id="usage-history-chart"></div><p id="usage-history-summary"></p></section>
       <div class="usage-columns">
-        <div><h3>用途</h3><dl id="usage-operation"><div><dt>—</dt><dd>記録なし</dd></div></dl></div>
-        <div><h3>モデル</h3><dl id="usage-model"><div><dt>—</dt><dd>記録なし</dd></div></dl></div>
-        <div><h3>日別</h3><dl id="usage-day"><div><dt>—</dt><dd>記録なし</dd></div></dl></div>
+        <div><h3>__ANIMA_I18N_purpose_05b36669__</h3><dl id="usage-operation"><div><dt>—</dt><dd>__ANIMA_I18N_no_records_e5c08266__</dd></div></dl></div>
+        <div><h3>__ANIMA_I18N_model_94591749__</h3><dl id="usage-model"><div><dt>—</dt><dd>__ANIMA_I18N_no_records_e5c08266__</dd></div></dl></div>
+        <div><h3>__ANIMA_I18N_by_date_5e8c8f89__</h3><dl id="usage-day"><div><dt>—</dt><dd>__ANIMA_I18N_no_records_e5c08266__</dd></div></dl></div>
       </div>
-      <p class="retry-line" id="retry-detail">再試行記録なし</p>
+      <p class="retry-line" id="retry-detail">__ANIMA_I18N_no_retry_records_92d04d66__</p>
     </section>
     <section id="inventory-section" class="log-panel" aria-labelledby="inventory-title">
       <div class="section-head">
-        <div><p class="eyebrow">PERSONAL INVENTORY</p><h2 id="inventory-title">手元にある物</h2></div>
-        <span class="pulse" id="inventory-summary">読み込み中</span>
+        <div><p class="eyebrow">PERSONAL INVENTORY</p><h2 id="inventory-title">__ANIMA_I18N_inventory_ea85a5c1__</h2></div>
+        <span class="pulse" id="inventory-summary">__ANIMA_I18N_loading_f9508eca__</span>
       </div>
-      <p class="guide-lead" id="inventory-guide">残すと決めた物と、判断待ちの一時生成物を表示します。</p>
-      <label class="inventory-auth">管理トークン <input id="inventory-token" type="password" autocomplete="off" placeholder="ダウンロード・削除時に必要"></label>
+      <p class="guide-lead" id="inventory-guide">__ANIMA_I18N_kept_items_and_temporary_artifacts_awaiting_a_de_d5121f7a__</p>
+      <label class="inventory-auth">__ANIMA_I18N_admin_token_7476c7f6__<input id="inventory-token" type="password" autocomplete="off" placeholder="__ANIMA_I18N_required_to_download_or_delete_7467776a__"></label>
       <div class="inventory-columns">
         <section class="inventory-group durable" aria-labelledby="inventory-durable-title">
-          <header><div><p class="label">KEPT / NO EXPIRY</p><h3 id="inventory-durable-title">残した持ち物</h3></div><span id="inventory-durable-count">—</span></header>
-          <p>自分で残すと決め、名前を付けた永続ファイルです。</p>
-          <ol id="inventory-durable-items"><li class="empty">読み込み中</li></ol>
+          <header><div><p class="label">KEPT / NO EXPIRY</p><h3 id="inventory-durable-title">__ANIMA_I18N_kept_items_c3d0324a__</h3></div><span id="inventory-durable-count">—</span></header>
+          <p>__ANIMA_I18N_named_permanent_files_that_the_agent_decided_to__882f9ba9__</p>
+          <ol id="inventory-durable-items"><li class="empty">__ANIMA_I18N_loading_f9508eca__</li></ol>
         </section>
         <section class="inventory-group temporary" aria-labelledby="inventory-temporary-title">
-          <header><div><p class="label">TEMPORARY / EXPIRES</p><h3 id="inventory-temporary-title">判断待ちの一時生成物</h3></div><span id="inventory-temporary-count">—</span></header>
-          <p>まだ残していない成果物です。保持期限を過ぎると掃除されます。</p>
-          <ol id="inventory-temporary-items"><li class="empty">読み込み中</li></ol>
+          <header><div><p class="label">TEMPORARY / EXPIRES</p><h3 id="inventory-temporary-title">__ANIMA_I18N_temporary_artifacts_06060504__</h3></div><span id="inventory-temporary-count">—</span></header>
+          <p>__ANIMA_I18N_artifacts_not_yet_kept_expired_artifacts_are_cle_b520b6aa__</p>
+          <ol id="inventory-temporary-items"><li class="empty">__ANIMA_I18N_loading_f9508eca__</li></ol>
         </section>
       </div>
     </section>
     <section id="resources-section" class="log-panel" aria-labelledby="resources-title">
-      <div class="section-head"><div><p class="eyebrow">RESOURCE REGISTRY</p><h2 id="resources-title">モデルが扱える資源</h2></div><span class="pulse" id="resources-summary">読み込み中</span></div>
-      <p class="guide-lead">CoreとPluginがモデルに公開している情報と、各資源で許可された操作です。</p>
-      <div id="resources" class="resource-grid"><p class="empty">資源を読み込んでいます</p></div>
+      <div class="section-head"><div><p class="eyebrow">RESOURCE REGISTRY</p><h2 id="resources-title">__ANIMA_I18N_model_resources_f5414e0f__</h2></div><span class="pulse" id="resources-summary">__ANIMA_I18N_loading_f9508eca__</span></div>
+      <p class="guide-lead">__ANIMA_I18N_information_exposed_to_the_model_by_core_and_plu_ccced20d__</p>
+      <div id="resources" class="resource-grid"><p class="empty">__ANIMA_I18N_loading_resources_84013e0a__</p></div>
     </section>
     <section id="memory-section" class="memory-archive" aria-labelledby="memory-archive-title">
       <div class="section-head">
-        <div><p class="eyebrow">MEMORY ARCHIVE</p><h2 id="memory-archive-title">記憶の書庫</h2></div>
-        <span class="pulse" id="memory-summary">読み込み中</span>
+        <div><p class="eyebrow">MEMORY ARCHIVE</p><h2 id="memory-archive-title">__ANIMA_I18N_memory_archive_8903bb11__</h2></div>
+        <span class="pulse" id="memory-summary">__ANIMA_I18N_loading_f9508eca__</span>
       </div>
-      <p class="memory-guide" id="memory-guide">現在保持している記憶文書を確認できます。</p>
+      <p class="memory-guide" id="memory-guide">__ANIMA_I18N_browse_the_currently_retained_memory_documents_7e51c574__</p>
       <aside class="memory-transfer" id="memory-transfer" aria-labelledby="memory-transfer-title">
         <div class="memory-transfer-route" aria-hidden="true"><span>LOCAL</span><i></i><b>VS</b></div>
         <div class="memory-transfer-state">
           <p class="label" id="memory-transfer-title">SEMANTIC SEARCH</p>
-          <strong id="memory-vector-state">確認中</strong>
-          <p id="memory-vector-detail">同期状態を読み込んでいます</p>
+          <strong id="memory-vector-state">__ANIMA_I18N_checking_06256b0c__</strong>
+          <p id="memory-vector-detail">__ANIMA_I18N_loading_sync_status_7220c1c1__</p>
         </div>
         <dl class="memory-transfer-facts">
-          <div><dt>最終同期</dt><dd id="memory-vector-time">—</dd></div>
-          <div><dt>索引対象</dt><dd id="memory-vector-size">—</dd></div>
-          <div><dt>識別子</dt><dd id="memory-vector-id">—</dd></div>
+          <div><dt>__ANIMA_I18N_last_synced_9cef9703__</dt><dd id="memory-vector-time">—</dd></div>
+          <div><dt>__ANIMA_I18N_indexed_content_a45e6a06__</dt><dd id="memory-vector-size">—</dd></div>
+          <div><dt>__ANIMA_I18N_identifiers_11502279__</dt><dd id="memory-vector-id">—</dd></div>
         </dl>
       </aside>
       <div class="memory-reading-room">
-        <nav id="memory-documents" class="memory-index" aria-label="記憶の索引"><p class="empty">記憶を読み込んでいます</p></nav>
+        <nav id="memory-documents" class="memory-index" aria-label="__ANIMA_I18N_memory_index_e8550b86__"><p class="empty">__ANIMA_I18N_loading_memories_315aba43__</p></nav>
         <section class="memory-reader" aria-live="polite" aria-labelledby="memory-reader-title">
-          <header><div><p class="label" id="memory-reader-kind">MEMORY</p><h3 id="memory-reader-title">一冊選んでください</h3></div><span id="memory-reader-meta">—</span></header>
-          <pre id="memory-reader-body" class="empty-memory">記憶を読み込んでいます</pre>
+          <header><div><p class="label" id="memory-reader-kind">MEMORY</p><h3 id="memory-reader-title">__ANIMA_I18N_select_a_document_34dded6d__</h3></div><span id="memory-reader-meta">—</span></header>
+          <pre id="memory-reader-body" class="empty-memory">__ANIMA_I18N_loading_memories_315aba43__</pre>
         </section>
       </div>
     </section>
     <section id="jobs-section" class="log-panel" aria-labelledby="plugin-jobs-title">
-      <div class="section-head"><div><p class="eyebrow">BACKGROUND JOBS</p><h2 id="plugin-jobs-title">プラグインの非同期処理</h2></div><span class="pulse" id="plugin-jobs-summary">読み込み中</span></div>
-      <p class="guide-lead">応答とは別に進む生成・処理の受付、実行、完了、失敗を表示します。</p>
-      <ol id="plugin-jobs"><li class="empty">ジョブを読み込んでいます</li></ol>
+      <div class="section-head"><div><p class="eyebrow">BACKGROUND JOBS</p><h2 id="plugin-jobs-title">__ANIMA_I18N_plugin_background_jobs_f6adb96d__</h2></div><span class="pulse" id="plugin-jobs-summary">__ANIMA_I18N_loading_f9508eca__</span></div>
+      <p class="guide-lead">__ANIMA_I18N_acceptance_execution_completion_and_failure_of_t_24fcfedb__</p>
+      <ol id="plugin-jobs"><li class="empty">__ANIMA_I18N_loading_jobs_39dea601__</li></ol>
     </section>
     <section id="errors-section" class="log-panel error-history" aria-labelledby="error-history-title">
-      <div class="section-head"><div><p class="eyebrow">ERROR HISTORY</p><h2 id="error-history-title">エラー履歴</h2></div><span class="pulse" id="error-history-summary">読み込み中</span></div>
-      <p class="guide-lead">選択中のギルド／DMで起きた失敗を新しい順に表示します。許可されない操作も記録します。</p>
-      <ol id="error-history"><li class="empty">履歴を読み込んでいます</li></ol>
+      <div class="section-head"><div><p class="eyebrow">ERROR HISTORY</p><h2 id="error-history-title">__ANIMA_I18N_error_history_3931a556__</h2></div><span class="pulse" id="error-history-summary">__ANIMA_I18N_loading_f9508eca__</span></div>
+      <p class="guide-lead">__ANIMA_I18N_failures_in_the_selected_guild_or_dm_newest_firs_4c39d947__</p>
+      <ol id="error-history"><li class="empty">__ANIMA_I18N_loading_history_4b395dc3__</li></ol>
     </section>
     <section id="plugin-logs-section" class="log-panel">
-      <h2>プラグインの詳細ログ</h2>
-      <p class="eyebrow">入力には会話や人物情報が含まれます。選択中の領域のみ、直近50件を表示します。</p>
+      <h2>__ANIMA_I18N_plugin_detail_logs_e346db9b__</h2>
+      <p class="eyebrow">__ANIMA_I18N_inputs_can_contain_conversations_and_personal_in_59561b5b__</p>
       <div id="plugin-logs"></div>
     </section>
     <section id="trace-section" class="log-panel">
-      <div class="section-head"><div><p class="eyebrow">LIVE TRACE</p><h2>最近の動き</h2></div><span class="pulse">5秒ごとに更新</span></div>
+      <div class="section-head"><div><p class="eyebrow">LIVE TRACE</p><h2>__ANIMA_I18N_recent_activity_7088b241__</h2></div><span class="pulse">__ANIMA_I18N_updated_every_5_seconds_3cb1e349__</span></div>
       <details class="trace-guide">
-        <summary><span>イベントの読み方</span><small>名前・主な項目・異常の見分け方</small></summary>
+        <summary><span>__ANIMA_I18N_reading_events_0a8c55ff__</span><small>__ANIMA_I18N_names_key_fields_and_failure_indicators_f6e8018a__</small></summary>
         <div class="trace-guide-body">
-          <p class="guide-lead"><code>対象.動作</code> の順で読みます。<strong>failed</strong> は失敗、<strong>skipped</strong> は条件により実行しなかった記録です。</p>
+          <p class="guide-lead"><code>__ANIMA_I18N_subject_action_9d511f56__</code>__ANIMA_I18N_identifies_the_subject_and_action_d541077f__<strong>failed</strong>__ANIMA_I18N_indicates_failure_ac6cd452__<strong>skipped</strong>__ANIMA_I18N_indicates_an_action_skipped_because_its_conditio_0ad03844__</p>
           <dl class="event-guide">
-            <div><dt><code>persona.*</code></dt><dd><code>queued</code> 処理待ち、<code>processed</code> 応答処理完了、<code>failed</code> 応答処理失敗。</dd></div>
-            <div><dt><code>openai.*</code></dt><dd><code>request.started</code> API呼び出し開始、<code>response.completed</code> 完了。<code>tool.started / completed / failed</code> はモデルが選んだツール、その安全な引数要約、結果です。</dd></div>
-            <div><dt><code>image_generation.* / drawing.*</code></dt><dd><code>image_generation.completed</code> は画像モデルによる生成完了、<code>drawing.saved / failed</code> は生成画像の保存結果です。</dd></div>
-            <div><dt><code>native_tool.*</code></dt><dd>モデルが使用したネイティブツールの実行結果です。</dd></div>
-            <div><dt><code>inventory.*</code></dt><dd>持ち物の管理操作。<code>dashboard.downloaded / deleted</code> は管理画面からのダウンロードまたは削除の監査記録です。</dd></div>
-            <div><dt><code>plugin_job.*</code></dt><dd>プラグインの非同期ジョブ。<code>queued / started / completed / failed / cancelled</code> で状態遷移を確認できます。</dd></div>
-            <div><dt><code>research.saved</code></dt><dd>検索メモを会話ログへ保存した記録。検索時点・要約・出典は上のRESEARCH欄で確認できます。</dd></div>
-            <div><dt><code>maintenance.*</code></dt><dd>昼寝の要約、睡眠整理、週次振り返りの完了／失敗。<code>rejected</code> は保存前の検証で棄却された結果です。種類は <code>operation</code> で確認します。</dd></div>
-            <div><dt><code>reaction.* / face.*</code></dt><dd>一般会話へのリアクション判断と、返信に添える表情。<code>decided action=none</code> は正常な無反応です。</dd></div>
-            <div><dt><code>proactive.*</code></dt><dd>一般会話へ自発的に加わる判断・送信・抑止・失敗。<code>target</code>は発話のきっかけになった投稿です。</dd></div>
-            <div><dt><code>self_time.*</code></dt><dd>低頻度の「自分の時間」。<code>started / completed / failed / interrupted / skipped</code>を記録します。Tool操作は会話と共通の<code>openai.tool.*</code>に記録され、<code>operation=self_time</code>で識別できます。発話せず、気分・自分の記憶・持ち物へ反映されます。</dd></div>
-            <div><dt><code>voice.*</code></dt><dd>読み上げの待機・合成・完了・中止・失敗・再接続。<code>skipped</code> の理由は <code>reason</code> に出ます。</dd></div>
-            <div><dt><code>music.*</code></dt><dd>楽曲の再生開始・完了・停止・失敗。曲は <code>title</code> または <code>track_id</code> で識別します。</dd></div>
-            <div><dt><code>reminder.*</code></dt><dd>単発リマインダーの登録・取消・通知・失敗。識別子は <code>reminder_id</code> です。</dd></div>
-            <div><dt><code>operation.retry</code></dt><dd>一時障害からの再試行。繰り返す場合は <code>operation</code> と <code>reason</code> を確認します。</dd></div>
-            <div><dt><code>discord.reply.recovered</code></dt><dd>再起動後、送信済みの返信を発見して状態だけ復旧した記録です。二重送信ではありません。</dd></div>
+            <div><dt><code>persona.*</code></dt><dd><code>queued</code>__ANIMA_I18N_pending_517e8fd9__<code>processed</code>__ANIMA_I18N_response_completed_a8707b2a__<code>failed</code>__ANIMA_I18N_response_failed_0be8c7f8__</dd></div>
+            <div><dt><code>openai.*</code></dt><dd><code>request.started</code>__ANIMA_I18N_api_request_started_e9fb8b5f__<code>response.completed</code>__ANIMA_I18N_completed_9437df56__<code>tool.started / completed / failed</code>__ANIMA_I18N_show_the_selected_tool_a_safe_argument_summary_a_df2e9f49__</dd></div>
+            <div><dt><code>image_generation.* / drawing.*</code></dt><dd><code>image_generation.completed</code>__ANIMA_I18N_means_image_generation_completed_2d196d59__<code>drawing.saved / failed</code>__ANIMA_I18N_reports_whether_the_generated_image_was_saved_bae1091b__</dd></div>
+            <div><dt><code>native_tool.*</code></dt><dd>__ANIMA_I18N_execution_results_of_native_tools_used_by_the_mo_a9ef81d1__</dd></div>
+            <div><dt><code>inventory.*</code></dt><dd>__ANIMA_I18N_inventory_operations_87857591__<code>dashboard.downloaded / deleted</code>__ANIMA_I18N_are_audit_records_of_downloads_or_deletions_from_9663565c__</dd></div>
+            <div><dt><code>plugin_job.*</code></dt><dd>__ANIMA_I18N_plugin_background_jobs_85930b21__<code>queued / started / completed / failed / cancelled</code>__ANIMA_I18N_show_state_transitions_995f8ed1__</dd></div>
+            <div><dt><code>research.saved</code></dt><dd>__ANIMA_I18N_search_notes_saved_to_the_conversation_log_see_r_fefd914b__</dd></div>
+            <div><dt><code>maintenance.*</code></dt><dd>__ANIMA_I18N_completion_or_failure_of_nap_summaries_sleep_con_61c2cb6d__<code>rejected</code>__ANIMA_I18N_means_validation_rejected_the_result_before_savi_9108e6a4__<code>operation</code>__ANIMA_I18N__126e055b__</dd></div>
+            <div><dt><code>reaction.* / face.*</code></dt><dd>__ANIMA_I18N_reaction_decisions_in_general_conversation_and_e_7fd25ffe__<code>decided action=none</code>__ANIMA_I18N_is_a_normal_decision_not_to_react_9d8df597__</dd></div>
+            <div><dt><code>proactive.*</code></dt><dd>__ANIMA_I18N_decisions_sends_suppression_and_failures_when_pr_5c0dc23c__<code>target</code>__ANIMA_I18N_is_the_message_that_triggered_the_response_d77f2a44__</dd></div>
+            <div><dt><code>self_time.*</code></dt><dd>__ANIMA_I18N_occasional_private_activity_588206c6__<code>started / completed / failed / interrupted / skipped</code>__ANIMA_I18N_are_recorded_tool_operations_share_adb56791__<code>openai.tool.*</code>__ANIMA_I18N_with_conversations_and_are_identified_by_23e0a9b1__<code>operation=self_time</code>__ANIMA_I18N_no_message_is_sent_mood_self_memory_and_inventor_fa09e465__</dd></div>
+            <div><dt><code>voice.*</code></dt><dd>__ANIMA_I18N_speech_queueing_synthesis_completion_cancellatio_45d8b4a5__<code>skipped</code>__ANIMA_I18N_has_its_reason_in_638c5f6d__<code>reason</code>__ANIMA_I18N__138831f3__</dd></div>
+            <div><dt><code>music.*</code></dt><dd>__ANIMA_I18N_music_start_completion_stop_and_failure_identify_8ade7029__<code>title</code>__ANIMA_I18N_or_0222621c__<code>track_id</code>__ANIMA_I18N__f8a5163b__</dd></div>
+            <div><dt><code>reminder.*</code></dt><dd>__ANIMA_I18N_one_shot_reminder_creation_cancellation_delivery_45adbd3a__<code>reminder_id</code>__ANIMA_I18N__e99572e7__</dd></div>
+            <div><dt><code>operation.retry</code></dt><dd>__ANIMA_I18N_retries_after_transient_failures_if_repeated_ins_f5d46040__<code>operation</code>__ANIMA_I18N_and_a3a92eaa__<code>reason</code>__ANIMA_I18N__e6748898__</dd></div>
+            <div><dt><code>discord.reply.recovered</code></dt><dd>__ANIMA_I18N_a_previously_sent_reply_was_found_after_a_restar_9bc0c871__</dd></div>
           </dl>
-          <p class="field-guide"><b>よく見る項目</b><code>duration_ms</code> 処理時間 · <code>queue_wait_ms</code> 待ち時間 · <code>depth</code> 待ち件数 · <code>tool_name</code> 選択ツール · <code>round</code> API往復番号 · <code>error_type</code> 失敗種別 · <code>reason</code> 中止／省略理由</p>
+          <p class="field-guide"><b>__ANIMA_I18N_common_fields_328ab56f__</b><code>duration_ms</code>__ANIMA_I18N_processing_time_c6552d45__<code>queue_wait_ms</code>__ANIMA_I18N_queue_wait_14c99129__<code>depth</code>__ANIMA_I18N_queued_count_79c2c6df__<code>tool_name</code>__ANIMA_I18N_selected_tool_ce6b4142__<code>round</code>__ANIMA_I18N_api_round_5ee6e7d4__<code>error_type</code>__ANIMA_I18N_error_type_8b70c0e9__<code>reason</code>__ANIMA_I18N_cancellation_skip_reason_cf517d9b__</p>
         </div>
       </details>
-      <ol id="events"><li class="empty">イベントを読み込んでいます</li></ol>
+      <ol id="events"><li class="empty">__ANIMA_I18N_loading_events_b79a5acd__</li></ol>
     </section>
     </section>
   </main>

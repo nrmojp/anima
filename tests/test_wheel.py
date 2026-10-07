@@ -18,6 +18,7 @@ class WheelTests(unittest.TestCase):
         'anima/adapters/dashboard/assets/index.html',
         'anima/adapters/dashboard/assets/dashboard.js',
         'anima/adapters/dashboard/assets/dashboard.css',
+        'anima/adapters/dashboard/assets/messages.json',
         'anima/core/actor.py', 'anima-0.1.0.dist-info/METADATA',
     )
 
@@ -45,6 +46,8 @@ class WheelTests(unittest.TestCase):
     def test_missing(self):
         with self.assertRaisesRegex(ValueError, 'missing required'):
             self.check(self.base[1:])
+        with self.assertRaisesRegex(ValueError, 'messages.json'):
+            self.check(tuple(name for name in self.base if not name.endswith('messages.json')))
 
     def test_metadata(self):
         for names in (self.base[:-1], (*self.base[:-1], 'other-1.dist-info/METADATA'), (*self.base, 'anima-2.dist-info/METADATA')):

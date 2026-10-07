@@ -14,6 +14,7 @@ from anima.adapters.dashboard.server import (
     recent_events, operation_summary, self_time_summary, memory_contents, DashboardData, DashboardServer, _handler,
     serve_dashboard, dashboard_branding, CONFIG_DOCUMENTS,
 )
+from anima.adapters.dashboard.localization import render_asset
 from anima.core.access import ActivityModeStore, ActivityPolicy
 from anima.core.sandbox import SandboxKey
 from anima.core.state import FileStateStore
@@ -164,7 +165,7 @@ class DashboardTests(unittest.TestCase):
             (state / "memory/people/1.md").write_text("## にもちゃん／お姉ちゃん\n関係: 姉\n- 体験\n", encoding="utf-8")
             self.assertEqual(memory_contents(state)["documents"][3]["title"], "にもちゃん／お姉ちゃん")
             (state / "memory/people/1.md").write_text("## \n", encoding="utf-8")
-            self.assertEqual(memory_contents(state)["documents"][3]["title"], "人物 1")
+            self.assertEqual(memory_contents(state)["documents"][3]["title"], "Person 1")
             linked_child = state / "memory/linked-dir/1.md"
             with patch.object(Path, "glob", return_value=[linked_child]):
                 guarded = memory_contents(state)
@@ -226,7 +227,7 @@ class DashboardTests(unittest.TestCase):
                 ("unknown", "x"), ("persona", ""), ("persona", "x" * 16001),
                 ("dashboard", "bad"), ("dashboard", "[]"),
                 ("dashboard", '{"unknown":"x"}'),
-                ("dashboard", '{"browser_title":"x"}'),
+                ("dashboard", '{"browser_title":1}'),
             ):
                 with self.subTest(document_id=document_id, content=content[:20]):
                     with self.assertRaises(ValueError):
@@ -661,8 +662,8 @@ class DashboardTests(unittest.TestCase):
         self.assertTrue((assets / "index.html").is_file())
         self.assertTrue((assets / "dashboard.css").is_file())
         self.assertTrue((assets / "dashboard.js").is_file())
-        guide = (assets / "index.html").read_text(encoding="utf-8")
-        script = (assets / "dashboard.js").read_text(encoding="utf-8")
+        guide = render_asset((assets / "index.html").read_text(encoding="utf-8"), "ja")
+        script = render_asset((assets / "dashboard.js").read_text(encoding="utf-8"), "ja", script=True)
         styles = (assets / "dashboard.css").read_text(encoding="utf-8")
         self.assertIn("ひとりの時間", guide)
         self.assertIn('class="skip-link" href="#dashboard-groups"', guide)
@@ -728,6 +729,7 @@ class DashboardTests(unittest.TestCase):
                 "memory_guide": "Persona memory.",
             }), encoding="utf-8")
             self.assertEqual(dashboard_branding(root), {
+                "locale": "en",
                 "browser_title": "Persona Console",
                 "heading": "Persona Observatory",
                 "eyebrow": "PERSONA / STATUS",
