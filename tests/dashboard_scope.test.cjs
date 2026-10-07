@@ -4,10 +4,33 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
-const source=fs.readFileSync('src/anima/adapters/dashboard/assets/dashboard.js','utf8');
+const template=fs.readFileSync('src/anima/adapters/dashboard/assets/dashboard.js','utf8');
+const messages=JSON.parse(fs.readFileSync('src/anima/adapters/dashboard/assets/messages.json','utf8'));
+function localizedSource(locale){return template.replace(/__ANIMA_I18N_([a-z0-9_]+)__/g,(_,key)=>messages[locale][key].replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"').replace(/`/g,'\\`').replace(/\$\{/g,'\\${').replace(/\n/g,'\\n').replace(/\r/g,'\\r'))}
+const source=localizedSource('ja');
+test('English UI formats status and preserves user memory and custom extension text',()=>{
+  const h=harness(false,'en');
+  const value=status(a);
+  value.memory_contents={nonempty_documents:1,documents:[{path:'memory/self.md',kind:'self',lines:1,content:'日本語の記憶はそのまま'}]};
+  value.storage.memory_lines=1;
+  value.bot={running:true,connected:true,user:'Custom persona'};
+  value.plugins=[{name:'custom',enabled:true,available:true,running:true,description:'独自説明'}];
+  h.context.render(value);
+  assert.equal(h.get('presence').textContent,'Online');
+  assert.equal(h.get('activity-mode').textContent,'Reply and react');
+  assert.equal(h.get('memory-reader-title').textContent,'Self memory');
+  assert.equal(h.get('memory-reader-body').textContent,'日本語の記憶はそのまま');
+  assert.equal(h.get('plugins').children[0].children[1].textContent,'独自説明');
+  assert.equal(vm.runInContext("ago(null)",h.context),'No records');
+  assert.equal(vm.runInContext("fmt(12345)",h.context),'12,345');
+  assert.match(vm.runInContext("ago(Date.now()-5000)",h.context),/s ago/);
+  h.context.renderBranding({heading:'カスタム見出し',memory_guide:'記憶の書庫'});
+  assert.equal(h.get('dashboard-heading').textContent,'カスタム見出し');
+  assert.equal(h.get('memory-guide').textContent,'記憶の書庫');
+});
 const a={key:'guild:1',id:'1',kind:'guild',name:'A',enabled:true,activity:{mode:'react',effective_mode:'react'}};
 const b={key:'dm:2',id:'2',kind:'dm',name:'B',enabled:false,activity:{mode:'reply',effective_mode:'disabled'}};
-function harness(desktop=false){
+function harness(desktop=false,locale='ja'){
   const elements=new Map();
   function element(){return {children:[],hidden:true,textContent:'',value:'',style:{},dataset:{},classList:{toggle(){}},
     appendChild(e){this.children.push(e)},append(...items){this.children.push(...items)},replaceChildren(){this.children=[]},
@@ -19,7 +42,7 @@ function harness(desktop=false){
   const context=vm.createContext({matchMedia:()=>media,document:{getElementById:get,createElement:element,createElementNS:element,querySelector:selector=>selector==='.section-menu'?menu:element(),querySelectorAll:()=>groups},
     location:{search:'',href:'http://localhost/'},history:{replaceState(){}},URL,URLSearchParams,Intl,Date,
     setInterval(){},fetch(url,options){return new Promise(resolve=>pending.push({url,options,resolve}))}});
-  vm.runInContext(source,context);
+  vm.runInContext(localizedSource(locale),context);
   return {context,get,pending,menu,groups,media};
 }
 test('navigation exposes desktop index and collapses independently on narrow screens',()=>{

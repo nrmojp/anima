@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 GROUPS = ("core", "capabilities", "adapters", "bootstrap")
-SUFFIXES = {".py", ".js", ".css", ".html"}
+SUFFIXES = {".py", ".js", ".css", ".html", ".json"}
 
 
 def inventory(root: Path) -> dict[str, bytes]:

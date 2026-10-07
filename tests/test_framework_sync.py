@@ -11,6 +11,21 @@ spec.loader.exec_module(sync)
 
 
 class FrameworkSyncTests(unittest.TestCase):
+    def test_language_catalog_is_fingerprinted(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.create(root)
+            assets = root / 'src/anima/adapters/dashboard/assets'
+            assets.mkdir(parents=True)
+            catalog = assets / 'messages.json'
+            catalog.write_text('{"en": {}}')
+            self.assertIn('src/anima/adapters/dashboard/assets/messages.json', sync.inventory(root))
+            self.assertEqual(sync.verify(root), ['framework-lock.json does not match the common framework'])
+            (root / 'framework-lock.json').write_text(json.dumps(sync.fingerprint(sync.inventory(root))))
+            self.assertEqual(sync.verify(root), [])
+            catalog.write_text('{"en": {}, "ja": {}}')
+            self.assertTrue(sync.verify(root))
+
     def create(self, root):
         package = root / "src/anima"
         package.mkdir(parents=True)

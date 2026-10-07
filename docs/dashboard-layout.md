@@ -3,6 +3,24 @@
 Help operators find status, memory, configuration, and diagnostics. Preserve
 existing features, sandbox selection, and plugin-provided panels and menus.
 
+## Language and presentation
+
+The default dashboard language is English. Set `"locale": "ja"` in the deployed
+persona's `dashboard.json` for Japanese, or `"locale": "en"` for English.
+Unsupported values fall back to English when reading; the configuration editor
+rejects unsupported values when saving. Existing files without a locale use English.
+This setting also controls number, date, and relative-time formatting.
+
+Core UI text is stored in `assets/messages.json`. HTML and JavaScript templates
+contain `__ANIMA_I18N_<key>__` tokens, resolved and escaped by the dashboard adapter.
+New UI messages must provide both languages; do not insert translated text into
+stored data or translate conversation, memory, logs, filenames, or custom branding.
+Extension-owned labels remain as supplied unless they match a registered UI label.
+Keep persona-specific descriptions in the consumer repository, not this catalog.
+
+Reload the browser after changing language. Other branding changes still refresh
+normally. No model or external translation API is involved.
+
 ## References
 
 - [Digital Agency Design System: layout](https://design.digital.go.jp/dads/foundations/layout/)

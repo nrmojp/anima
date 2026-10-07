@@ -51,12 +51,16 @@ To brand the dashboard, optionally create `config/dashboard.json`:
 
 ```json
 {
+  "locale": "en",
   "browser_title": "Sora Operations",
   "heading": "Sora Observatory",
   "eyebrow": "SORA / STATUS",
   "memory_guide": "Sora's memories and learned habits in the selected sandbox."
 }
 ```
+
+The dashboard defaults to English. Use `"locale": "ja"` for Japanese. This changes
+the interface and date/number formatting, not the persona or memory contents.
 
 ## 3. Configure a first text-only bot
 

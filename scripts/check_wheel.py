@@ -14,6 +14,7 @@ def check_wheel(path: Path) -> None:
         "anima/adapters/dashboard/assets/index.html",
         "anima/adapters/dashboard/assets/dashboard.js",
         "anima/adapters/dashboard/assets/dashboard.css",
+        "anima/adapters/dashboard/assets/messages.json",
     }
     if missing := required - names:
         raise ValueError(f"wheel is missing required files: {sorted(missing)}")
