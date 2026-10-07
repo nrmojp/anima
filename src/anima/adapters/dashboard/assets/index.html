@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Anima Operations</title>
+  <link rel="stylesheet" href="/dashboard.css">
+</head>
+<body>
+  <a class="skip-link" href="#dashboard-groups">ダッシュボードの内容へ</a>
+  <main>
+    <header class="masthead">
+      <div><p class="eyebrow" id="dashboard-eyebrow">ANIMA / LOCAL OBSERVATORY</p><h1 id="dashboard-heading">Anima Observatory</h1></div>
+      <p class="clock" id="clock">--:--:--</p>
+    </header>
+    <section class="scope-panel" aria-label="表示対象">
+      <label for="sandbox-select">観測する場所</label>
+      <select id="sandbox-select" disabled><option>読み込み中</option></select>
+      <p id="scope-name">表示対象を確認しています</p>
+      <p id="scope-detail" class="scope-detail" aria-live="polite">—</p>
+      <p id="load-error" role="status"></p>
+    </section>
+    <section id="scoped-content" hidden>
+    <nav class="section-menu" aria-label="ダッシュボードの項目">
+      <span class="section-menu-label">見る場所</span>
+      <details><summary>いまの状態</summary><div><a href="#overview">接続と稼働状況</a><a href="#self-time">ひとりの時間</a><span id="plugin-menu-status"></span></div></details>
+      <details><summary>記憶と持ち物</summary><div><a href="#memory-section">記憶の書庫</a><a href="#inventory-section">手元にある物</a><span id="plugin-menu-memory"></span></div></details>
+      <details><summary>構成と設定</summary><div><a href="#plugins-section">能力の構成</a><a href="#resources-section">モデルが扱える資源</a><a href="#config-section">コアの固定設定</a><a href="#settings-section">Botの運用設定</a><span id="plugin-menu-configuration"></span></div></details>
+<details><summary>運用と診断</summary><div><a href="#usage">用途別の利用量</a><a href="#jobs-section">非同期処理</a><a href="#errors-section">エラー履歴</a><a href="#trace-section">最近の動き</a><a href="#plugin-logs-section">プラグイン詳細ログ</a><span id="plugin-menu-diagnostics"></span></div></details>
+    </nav>
+    <div id="dashboard-groups" tabindex="-1">
+      <section class="dashboard-group" id="group-status" aria-label="いまの状態"></section>
+      <section class="dashboard-group" id="group-memory" aria-label="記憶と持ち物"></section>
+      <section class="dashboard-group" id="group-configuration" aria-label="構成と設定"></section>
+      <section class="dashboard-group" id="group-diagnostics" aria-label="運用と診断"></section>
+    </div>
+    <section id="overview" class="presence" aria-labelledby="presence-title">
+      <div class="core" id="core"><span class="core-dot"></span></div>
+      <div><p class="eyebrow" id="presence-title">BOT共通 / 接続状態</p><h2 id="presence">確認中</h2><p id="presence-detail">状態を読み込んでいます</p></div>
+      <p class="updated" id="updated">—</p>
+    </section>
+    <p class="eyebrow">以下は選択中のギルド／DMのみ</p>
+    <section class="grid" aria-label="選択した領域の稼働状況">
+      <article><p class="label">MOOD</p><strong id="mood">—</strong><p id="focus">—</p></article>
+      <article><p class="label">QUEUE</p><strong id="queue">—</strong><p id="queue-detail">—</p></article>
+      <article><p class="label">OPENAI</p><strong id="tokens">—</strong><p id="requests">—</p></article>
+      <article><p class="label">MEMORY</p><strong id="memory">—</strong><p id="storage">—</p></article>
+      <article><p class="label">LAST SPOKE</p><strong id="last-spoke">—</strong><p id="version">—</p></article>
+      <article><p class="label">REFLECTION</p><strong id="reflected">—</strong><p id="reflection-detail">—</p></article>
+      <article><p class="label">ACTOR</p><strong id="actor-state">—</strong><p id="actor-detail">—</p></article>
+      <article><p class="label">MAINTENANCE</p><strong id="maintenance-state">—</strong><p id="maintenance-detail">—</p></article>
+      <article><p class="label">LAST EXTERNAL</p><strong id="api-state">—</strong><p id="api-detail">—</p></article>
+      <article><p class="label">DISCORD PING</p><strong id="gateway-ping">—</strong><p id="gateway-detail">Gateway latency</p></article>
+      <article><p class="label">ACTIVITY MODE</p><strong id="activity-mode">—</strong><p id="activity-detail">—</p></article>
+      <article><p class="label">CURRENT MODES</p><strong id="mode-count">—</strong><p id="mode-detail">—</p></article>
+    </section>
+    <section id="self-time" class="self-time-window" aria-labelledby="self-time-title" data-state="idle">
+      <div class="self-time-orbit" aria-hidden="true"><i></i><span>SELF</span></div>
+      <div class="self-time-main">
+        <div class="section-head self-time-head">
+          <div><p class="eyebrow">PRIVATE ACTIVITY / SELF TIME</p><h2 id="self-time-title">ひとりの時間</h2></div>
+          <span class="self-time-state" id="self-time-state">確認中</span>
+        </div>
+        <p class="self-time-lead" id="self-time-lead">話しかけられていない時間の活動記録を読み込んでいます。</p>
+        <ol class="self-time-journal" id="self-time-journal"><li class="empty">記録を読み込んでいます</li></ol>
+      </div>
+      <dl class="self-time-facts">
+        <div><dt>今日の起動</dt><dd id="self-time-starts">—</dd></div>
+        <div><dt>最終開始</dt><dd id="self-time-last">—</dd></div>
+        <div><dt>直近の選択</dt><dd id="self-time-action">—</dd></div>
+      </dl>
+    </section>
+    <section id="plugins-section" class="log-panel plugin-panel" aria-labelledby="plugin-title">
+      <div class="section-head"><div><p class="eyebrow">CAPABILITY PLUGINS</p><h2 id="plugin-title">能力の構成</h2></div><span class="pulse" id="plugin-summary">確認中</span></div>
+      <div id="plugins" class="plugin-grid"><p class="empty">Plugin状態を読み込んでいます</p></div>
+    </section>
+    <div id="plugin-panels" class="plugin-panel-stack" aria-live="polite"></div>
+    <section id="config-section" class="log-panel config-panel" aria-labelledby="config-title">
+      <div class="section-head"><div><p class="eyebrow">CORE CONFIGURATION</p><h2 id="config-title">コアの固定設定</h2></div><button id="config-load" type="button">設定を開く</button></div>
+      <p class="guide-lead">ペルソナ、会話ルール、外見、ダッシュボード表示を一括管理します。秘密情報と実行中に育つ記憶は対象外です。</p>
+      <div id="config-editor" hidden>
+        <div class="config-auth"><label for="config-token">管理トークン</label><input id="config-token" type="password" autocomplete="current-password"><span id="config-access">確認中</span></div>
+        <nav id="config-documents" class="config-tabs" aria-label="固定設定"></nav>
+        <label id="config-label" for="config-content">設定内容</label>
+        <textarea id="config-content" spellcheck="false"></textarea>
+        <div class="config-actions"><span id="config-message" role="status"></span><button id="config-reload" type="button">設定を再読み込み</button><button id="config-save" type="button">保存</button></div>
+      </div>
+    </section>
+    <section id="settings-section" class="log-panel config-panel" aria-labelledby="settings-title">
+      <div class="section-head"><div><p class="eyebrow">BOT CONFIGURATION</p><h2 id="settings-title">Botの運用設定</h2></div><button id="settings-load" type="button">設定を開く</button></div>
+      <p class="guide-lead">モデル、プラグイン、Discord、音声、音楽、自発動作、保存期間を設定します。保存内容は次回起動時に反映されます。</p>
+      <div id="settings-editor" hidden>
+        <div class="config-auth"><label for="settings-token">管理トークン</label><input id="settings-token" type="password" autocomplete="current-password"><span id="settings-access">確認中</span></div>
+        <div id="settings-fields" class="settings-fields"></div>
+        <div class="config-actions"><span id="settings-message" role="status"></span><button id="settings-save" type="button">保存</button></div>
+      </div>
+    </section>
+    <section id="usage" class="log-panel usage-panel">
+      <div class="section-head"><div><p class="eyebrow">OPENAI USAGE</p><h2>用途別の利用量</h2></div><span class="pulse">選択領域の全運用ログ</span></div>
+      <aside class="usage-current" aria-labelledby="usage-current-title">
+        <div><p class="label" id="usage-current-title">LATEST RESPONSE</p><strong id="usage-current-total">—</strong><span>tokens</span></div>
+        <dl>
+          <div><dt>入力</dt><dd id="usage-current-input">—</dd></div>
+          <div><dt>出力</dt><dd id="usage-current-output">—</dd></div>
+          <div><dt>用途・モデル</dt><dd id="usage-current-meta">記録なし</dd></div>
+          <div><dt>完了</dt><dd id="usage-current-time">—</dd></div>
+        </dl>
+      </aside>
+      <div class="context-usage"><h3>プラグインのコンテキスト占有量</h3><p class="empty">最新リクエストの送信JSON文字数。入力トークン数ではありません。履歴・実行結果・共有定義はコアに含みます。</p><div id="context-usage"></div></div>
+      <section class="token-history"><h3>入力トークンの推移</h3><label>用途 <select id="usage-history-operation"><option value="respond">会話</option><option value="self_time">Self time</option><option value="">すべて</option></select></label><p class="empty">直近500イベント内の最新100応答。1点は応答1件の合計入力（複数ラウンドを含む）。点に触れると日時・モデル・入力数を表示します。</p><div id="usage-history-chart"></div><p id="usage-history-summary"></p></section>
+      <div class="usage-columns">
+        <div><h3>用途</h3><dl id="usage-operation"><div><dt>—</dt><dd>記録なし</dd></div></dl></div>
+        <div><h3>モデル</h3><dl id="usage-model"><div><dt>—</dt><dd>記録なし</dd></div></dl></div>
+        <div><h3>日別</h3><dl id="usage-day"><div><dt>—</dt><dd>記録なし</dd></div></dl></div>
+      </div>
+      <p class="retry-line" id="retry-detail">再試行記録なし</p>
+    </section>
+    <section id="inventory-section" class="log-panel" aria-labelledby="inventory-title">
+      <div class="section-head">
+        <div><p class="eyebrow">PERSONAL INVENTORY</p><h2 id="inventory-title">手元にある物</h2></div>
+        <span class="pulse" id="inventory-summary">読み込み中</span>
+      </div>
+      <p class="guide-lead" id="inventory-guide">残すと決めた物と、判断待ちの一時生成物を表示します。</p>
+      <label class="inventory-auth">管理トークン <input id="inventory-token" type="password" autocomplete="off" placeholder="ダウンロード・削除時に必要"></label>
+      <div class="inventory-columns">
+        <section class="inventory-group durable" aria-labelledby="inventory-durable-title">
+          <header><div><p class="label">KEPT / NO EXPIRY</p><h3 id="inventory-durable-title">残した持ち物</h3></div><span id="inventory-durable-count">—</span></header>
+          <p>自分で残すと決め、名前を付けた永続ファイルです。</p>
+          <ol id="inventory-durable-items"><li class="empty">読み込み中</li></ol>
+        </section>
+        <section class="inventory-group temporary" aria-labelledby="inventory-temporary-title">
+          <header><div><p class="label">TEMPORARY / EXPIRES</p><h3 id="inventory-temporary-title">判断待ちの一時生成物</h3></div><span id="inventory-temporary-count">—</span></header>
+          <p>まだ残していない成果物です。保持期限を過ぎると掃除されます。</p>
+          <ol id="inventory-temporary-items"><li class="empty">読み込み中</li></ol>
+        </section>
+      </div>
+    </section>
+    <section id="resources-section" class="log-panel" aria-labelledby="resources-title">
+      <div class="section-head"><div><p class="eyebrow">RESOURCE REGISTRY</p><h2 id="resources-title">モデルが扱える資源</h2></div><span class="pulse" id="resources-summary">読み込み中</span></div>
+      <p class="guide-lead">CoreとPluginがモデルに公開している情報と、各資源で許可された操作です。</p>
+      <div id="resources" class="resource-grid"><p class="empty">資源を読み込んでいます</p></div>
+    </section>
+    <section id="memory-section" class="memory-archive" aria-labelledby="memory-archive-title">
+      <div class="section-head">
+        <div><p class="eyebrow">MEMORY ARCHIVE</p><h2 id="memory-archive-title">記憶の書庫</h2></div>
+        <span class="pulse" id="memory-summary">読み込み中</span>
+      </div>
+      <p class="memory-guide" id="memory-guide">現在保持している記憶文書を確認できます。</p>
+      <aside class="memory-transfer" id="memory-transfer" aria-labelledby="memory-transfer-title">
+        <div class="memory-transfer-route" aria-hidden="true"><span>LOCAL</span><i></i><b>VS</b></div>
+        <div class="memory-transfer-state">
+          <p class="label" id="memory-transfer-title">SEMANTIC SEARCH</p>
+          <strong id="memory-vector-state">確認中</strong>
+          <p id="memory-vector-detail">同期状態を読み込んでいます</p>
+        </div>
+        <dl class="memory-transfer-facts">
+          <div><dt>最終同期</dt><dd id="memory-vector-time">—</dd></div>
+          <div><dt>索引対象</dt><dd id="memory-vector-size">—</dd></div>
+          <div><dt>識別子</dt><dd id="memory-vector-id">—</dd></div>
+        </dl>
+      </aside>
+      <div class="memory-reading-room">
+        <nav id="memory-documents" class="memory-index" aria-label="記憶の索引"><p class="empty">記憶を読み込んでいます</p></nav>
+        <section class="memory-reader" aria-live="polite" aria-labelledby="memory-reader-title">
+          <header><div><p class="label" id="memory-reader-kind">MEMORY</p><h3 id="memory-reader-title">一冊選んでください</h3></div><span id="memory-reader-meta">—</span></header>
+          <pre id="memory-reader-body" class="empty-memory">記憶を読み込んでいます</pre>
+        </section>
+      </div>
+    </section>
+    <section id="jobs-section" class="log-panel" aria-labelledby="plugin-jobs-title">
+      <div class="section-head"><div><p class="eyebrow">BACKGROUND JOBS</p><h2 id="plugin-jobs-title">プラグインの非同期処理</h2></div><span class="pulse" id="plugin-jobs-summary">読み込み中</span></div>
+      <p class="guide-lead">応答とは別に進む生成・処理の受付、実行、完了、失敗を表示します。</p>
+      <ol id="plugin-jobs"><li class="empty">ジョブを読み込んでいます</li></ol>
+    </section>
+    <section id="errors-section" class="log-panel error-history" aria-labelledby="error-history-title">
+      <div class="section-head"><div><p class="eyebrow">ERROR HISTORY</p><h2 id="error-history-title">エラー履歴</h2></div><span class="pulse" id="error-history-summary">読み込み中</span></div>
+      <p class="guide-lead">選択中のギルド／DMで起きた失敗を新しい順に表示します。許可されない操作も記録します。</p>
+      <ol id="error-history"><li class="empty">履歴を読み込んでいます</li></ol>
+    </section>
+    <section id="plugin-logs-section" class="log-panel">
+      <h2>プラグインの詳細ログ</h2>
+      <p class="eyebrow">入力には会話や人物情報が含まれます。選択中の領域のみ、直近50件を表示します。</p>
+      <div id="plugin-logs"></div>
+    </section>
+    <section id="trace-section" class="log-panel">
+      <div class="section-head"><div><p class="eyebrow">LIVE TRACE</p><h2>最近の動き</h2></div><span class="pulse">5秒ごとに更新</span></div>
+      <details class="trace-guide">
+        <summary><span>イベントの読み方</span><small>名前・主な項目・異常の見分け方</small></summary>
+        <div class="trace-guide-body">
+          <p class="guide-lead"><code>対象.動作</code> の順で読みます。<strong>failed</strong> は失敗、<strong>skipped</strong> は条件により実行しなかった記録です。</p>
+          <dl class="event-guide">
+            <div><dt><code>persona.*</code></dt><dd><code>queued</code> 処理待ち、<code>processed</code> 応答処理完了、<code>failed</code> 応答処理失敗。</dd></div>
+            <div><dt><code>openai.*</code></dt><dd><code>request.started</code> API呼び出し開始、<code>response.completed</code> 完了。<code>tool.started / completed / failed</code> はモデルが選んだツール、その安全な引数要約、結果です。</dd></div>
+            <div><dt><code>image_generation.* / drawing.*</code></dt><dd><code>image_generation.completed</code> は画像モデルによる生成完了、<code>drawing.saved / failed</code> は生成画像の保存結果です。</dd></div>
+            <div><dt><code>native_tool.*</code></dt><dd>モデルが使用したネイティブツールの実行結果です。</dd></div>
+            <div><dt><code>inventory.*</code></dt><dd>持ち物の管理操作。<code>dashboard.downloaded / deleted</code> は管理画面からのダウンロードまたは削除の監査記録です。</dd></div>
+            <div><dt><code>plugin_job.*</code></dt><dd>プラグインの非同期ジョブ。<code>queued / started / completed / failed / cancelled</code> で状態遷移を確認できます。</dd></div>
+            <div><dt><code>research.saved</code></dt><dd>検索メモを会話ログへ保存した記録。検索時点・要約・出典は上のRESEARCH欄で確認できます。</dd></div>
+            <div><dt><code>maintenance.*</code></dt><dd>昼寝の要約、睡眠整理、週次振り返りの完了／失敗。<code>rejected</code> は保存前の検証で棄却された結果です。種類は <code>operation</code> で確認します。</dd></div>
+            <div><dt><code>reaction.* / face.*</code></dt><dd>一般会話へのリアクション判断と、返信に添える表情。<code>decided action=none</code> は正常な無反応です。</dd></div>
+            <div><dt><code>proactive.*</code></dt><dd>一般会話へ自発的に加わる判断・送信・抑止・失敗。<code>target</code>は発話のきっかけになった投稿です。</dd></div>
+            <div><dt><code>self_time.*</code></dt><dd>低頻度の「自分の時間」。<code>started / completed / failed / interrupted / skipped</code>を記録します。Tool操作は会話と共通の<code>openai.tool.*</code>に記録され、<code>operation=self_time</code>で識別できます。発話せず、気分・自分の記憶・持ち物へ反映されます。</dd></div>
+            <div><dt><code>voice.*</code></dt><dd>読み上げの待機・合成・完了・中止・失敗・再接続。<code>skipped</code> の理由は <code>reason</code> に出ます。</dd></div>
+            <div><dt><code>music.*</code></dt><dd>楽曲の再生開始・完了・停止・失敗。曲は <code>title</code> または <code>track_id</code> で識別します。</dd></div>
+            <div><dt><code>reminder.*</code></dt><dd>単発リマインダーの登録・取消・通知・失敗。識別子は <code>reminder_id</code> です。</dd></div>
+            <div><dt><code>operation.retry</code></dt><dd>一時障害からの再試行。繰り返す場合は <code>operation</code> と <code>reason</code> を確認します。</dd></div>
+            <div><dt><code>discord.reply.recovered</code></dt><dd>再起動後、送信済みの返信を発見して状態だけ復旧した記録です。二重送信ではありません。</dd></div>
+          </dl>
+          <p class="field-guide"><b>よく見る項目</b><code>duration_ms</code> 処理時間 · <code>queue_wait_ms</code> 待ち時間 · <code>depth</code> 待ち件数 · <code>tool_name</code> 選択ツール · <code>round</code> API往復番号 · <code>error_type</code> 失敗種別 · <code>reason</code> 中止／省略理由</p>
+        </div>
+      </details>
+      <ol id="events"><li class="empty">イベントを読み込んでいます</li></ol>
+    </section>
+    </section>
+  </main>
+  <script src="/dashboard.js"></script>
+</body>
+</html>

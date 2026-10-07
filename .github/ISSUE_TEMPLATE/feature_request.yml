@@ -1,0 +1,25 @@
+name: Feature request
+description: Propose a reusable core, adapter, or capability change
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the generic use case without persona-specific data.
+    validations:
+      required: true
+  - type: dropdown
+    id: boundary
+    attributes:
+      label: Architectural boundary
+      options: [Core, Capability contract, Plugin, Adapter, Bootstrap, Documentation]
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true

@@ -1,0 +1,13 @@
+services:
+  anima:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:8765:8765"
+    environment:
+      ANIMA_DASHBOARD_HOST: "0.0.0.0"
+    volumes:
+      - ./config:/app/config
+      - ./state:/app/state
+    restart: "no"

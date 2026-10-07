@@ -1,0 +1,42 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: python -m pip install -e '.[dev]'
+      - run: python -m coverage run --source=src/anima -m unittest discover -s tests
+      - run: python -m coverage report --show-missing --fail-under=95
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node --test tests/dashboard_scope.test.cjs
+      - run: python scripts/check_framework_sync.py
+      - run: python scripts/check_public_tree.py
+
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: python -m pip install build
+      - run: python -m build --wheel
+      - run: python scripts/check_wheel.py dist/anima-0.1.0-py3-none-any.whl
+      - run: |
+          python -m venv /tmp/anima-wheel-test
+          /tmp/anima-wheel-test/bin/python -m pip install dist/*.whl
+          cd /tmp
+          /tmp/anima-wheel-test/bin/python -c 'import anima; from anima.capabilities.plugin_loader import PluginLoader; assert PluginLoader().load().manifests; import importlib.resources as r; assert r.files("anima.adapters.dashboard").joinpath("assets/index.html").is_file()'

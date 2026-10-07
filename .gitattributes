@@ -1,0 +1,4 @@
+src/anima/**/*.py text eol=lf
+src/anima/**/*.js text eol=lf
+src/anima/**/*.css text eol=lf
+src/anima/**/*.html text eol=lf

@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "anima"
+version = "0.1.0"
+description = "A transport-neutral runtime for persona agents and capability plugins"
+readme = "README.md"
+requires-python = ">=3.14"
+license = {text = "MIT"}
+authors = [{name = "nirumo"}]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.14",
+  "Typing :: Typed",
+]
+
+[project.urls]
+Repository = "https://github.com/nrmojp/anima"
+Issues = "https://github.com/nrmojp/anima/issues"
+
+[project.optional-dependencies]
+dev = [
+  "audioop-lts>=0.2,<1",
+  "coverage>=7,<8",
+  "discord.py>=2.6,<3",
+  "openai>=2.20,<3",
+]
+bot = [
+  "discord.py[voice]>=2.6,<3",
+  "openai>=2.20,<3",
+  "audioop-lts>=0.2,<1",
+]
+
+[project.scripts]
+anima-bot = "anima.bootstrap.app:main"
+anima = "anima.bootstrap.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["anima", "anima.*"]
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.package-data]
+anima = ["py.typed", "adapters/dashboard/assets/*"]

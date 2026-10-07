@@ -1,0 +1,8 @@
+{
+  "enabled": true,
+  "voice": "ja",
+  "speed": 175,
+  "volume": 100,
+  "maximum_characters": 500,
+  "timeout_seconds": 20.0
+}
