@@ -230,7 +230,10 @@ class PreparedToolSet:
             raise
         if not isinstance(result, ToolResult):
             raise TypeError("tool provider must return ToolResult")
-        plugin_log(plugin, "tool.completed", result=result.model_payload, status=result.status,
+        log_payload = dict(result.model_payload)
+        if log_payload.get("instructions_only") is True:
+            log_payload.pop("text", None)
+        plugin_log(plugin, "tool.completed", result=log_payload, status=result.status,
                    duration_ms=round((time.monotonic() - started) * 1000), **fields)
         return result
 

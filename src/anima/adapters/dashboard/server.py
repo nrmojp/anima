@@ -174,6 +174,7 @@ class DashboardData:
             "total_bytes": sum(item.size for item in items),
         }
         result["resources"] = _read_json(sandbox_root / "runtime" / "resources.json")
+        result["skills"] = _read_json(sandbox_root / "runtime" / "skills.json")
         from anima.core.plugin_logs import read_plugin_logs
         result["plugin_logs"] = read_plugin_logs(sandbox_root)
         jobs = PluginJobManager(sandbox_root / "runtime" / "plugin-jobs.json")

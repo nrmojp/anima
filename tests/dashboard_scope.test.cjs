@@ -273,3 +273,16 @@ test('persona configuration loads on demand and saves with an admin token',async
   assert.equal(h.get('dashboard-heading').textContent,'Reloaded');
   assert.match(h.get('config-message').textContent,/2領域/);
 });
+
+test('skill catalog and read history render text only and clear across sandboxes',()=>{
+  const h=harness();
+  h.context.renderSkills({skills:{skills:[{id:'core:sample',description:'<img onerror=alert(1)>',available:true,contexts:['conversation']}],reads:[{resource_id:'core:sample',context:'conversation',characters:42,bytes:52}],diagnostics:[{owner:'plugin',name:'invalid',error:'invalid_skill_name'}]}});
+  assert.match(h.get('skills-list').children[0].textContent,/<img onerror=alert\(1\)>/);
+  assert.match(h.get('skills-reads').children[0].textContent,/42 chars \/ 52 bytes/);
+  assert.match(h.get('skills-diagnostics').textContent,/invalid_skill_name/);
+  h.context.renderSkills({});
+  assert.equal(h.get('skills-summary').textContent,'(0)');
+  assert.equal(h.get('skills-list').children[0].textContent,'なし');
+  assert.equal(h.get('skills-reads').children[0].textContent,'なし');
+  assert.equal(h.get('skills-diagnostics').textContent,'');
+});

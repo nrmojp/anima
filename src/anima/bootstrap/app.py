@@ -48,6 +48,7 @@ from anima.core.self_time import SelfTimeService
 from anima.bootstrap.native_tools import WebSearchToolProvider
 from anima.bootstrap.resource_providers import AttachmentResourceProvider, InventoryResourceProvider, MemoryResourceProvider, OpenItemsResourceProvider
 from anima.core.resources import ResourceCollectionSpec, ResourceRegistration, ResourceRegistry, ResourceToolProvider
+from anima.core.skills import SkillLoader, SkillRegistry, SkillResourceProvider, SkillSource
 
 
 JST = ZoneInfo("Asia/Tokyo")
@@ -161,10 +162,21 @@ def build_sandbox(settings, key, root, sender, activity_modes, plugin_catalog, a
         ResourceRegistration(ResourceCollectionSpec("interface.current_attachments", "core", "現在の発言に添付されたファイル", "turn", frozenset({"list", "read", "export"}), transfer_policy="copy"), AttachmentResourceProvider(inventory)),
         ResourceRegistration(ResourceCollectionSpec("core.memory", "core", "このSandboxの長期記憶", "sandbox", frozenset({"search", "read"}), max_search_results=5), MemoryResourceProvider(root, memory_retriever)),
         ResourceRegistration(ResourceCollectionSpec("core.open_items", "core", "未完了事項。self timeでは全文更新も可能", "sandbox", frozenset({"list", "read", "write"}), writable_content="text"), OpenItemsResourceProvider(root)))
-    resources = ResourceRegistry((*registrations, *plugins.resources))
+    active_plugins = tuple(plugin for plugin in plugins.instances if plugin.snapshot().get("available", True))
+    active_names = {plugin.manifest.name for plugin in active_plugins}
+    skill_sources = (SkillSource("core", settings.anima_root / "skills"), *(
+        SkillSource(name, path) for name, path in plugin_catalog.skill_roots.items() if name in active_names))
+    loaded_skills, skill_diagnostics = SkillLoader().load(skill_sources)
+    skill_provider = SkillResourceProvider(SkillRegistry(loaded_skills, frozenset(
+        capability for plugin in active_plugins for capability in plugin.manifest.provides)),
+        status_path=root / "runtime" / "skills.json", diagnostics=skill_diagnostics)
+    skill_registration = ResourceRegistration(ResourceCollectionSpec(
+        "core.skills", "core", "Approved task instructions; read only when relevant", "process",
+        frozenset({"list", "read"})), skill_provider)
+    resources = ResourceRegistry((*registrations, *plugins.resources, skill_registration))
     primitive_resources = ResourceToolProvider(resources)
     plugin_tools = plugins.tools
-    responder.tool_registry = ToolRegistry((*plugin_tools.providers, primitive_resources), owners=plugin_tools.owners)
+    responder.tool_registry = ToolRegistry((*plugin_tools.providers, primitive_resources, skill_provider), owners=plugin_tools.owners)
     responder.response_registry = ResponseContributionRegistry(plugins.responses.providers)
     internal_providers, internal_owners, internal_actions = [], {}, set()
     for plugin in plugins.instances:
@@ -172,7 +184,7 @@ def build_sandbox(settings, key, root, sender, activity_modes, plugin_catalog, a
             internal_providers.append(provider)
             internal_owners[id(provider)] = plugin.manifest.name
         internal_actions.update(getattr(plugin, "internal_action_tools", ()))
-    internal_tools = ToolRegistry((*internal_providers, primitive_resources), owners=internal_owners)
+    internal_tools = ToolRegistry((*internal_providers, primitive_resources, skill_provider), owners=internal_owners)
     self_time = SelfTimeService(root / "runtime" / "self-time.json",
         LimitedCalls(conversation_factory.self_time(settings, client=api_client(),
             tool_registry=internal_tools, sandbox_key=key, allowed_action_tools=frozenset(internal_actions)), api_limit),
@@ -191,6 +203,10 @@ def build_sandbox(settings, key, root, sender, activity_modes, plugin_catalog, a
     path.write_text(json.dumps({"collections": resources.snapshot()}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     def reload_configuration():
         responder.reload_configuration(appearance=(settings.anima_root / "appearance.md").read_text(encoding="utf-8"))
+        skills, diagnostics = SkillLoader().load(skill_sources)
+        skill_provider.registry = SkillRegistry(skills, skill_provider.registry.capabilities)
+        skill_provider.diagnostics = diagnostics
+        skill_provider.write_status()
         for plugin in plugins.instances:
             callback = getattr(plugin, "reload_configuration", None)
             if callback is not None:

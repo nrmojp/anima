@@ -1,5 +1,8 @@
 # Architecture
 
+[Skills](skills.md) specifies the read-only instruction layer, progressive disclosure,
+plugin-packaged discovery, resource access and sandbox-local operational records.
+
 Provider-neutral conversation and decision boundaries and their host factory injection
 are specified in [model-backends.md](model-backends.md). Default classification uses
 Responses; Decisions and diagnostic shadow comparison require explicit configuration.

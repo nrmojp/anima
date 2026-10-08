@@ -21,6 +21,10 @@ class PluginLoaderTests(unittest.TestCase):
     def test_loads_in_tree_plugins_and_skips_non_entry_packages(self):
         catalog = PluginLoader().load()
         self.assertEqual([manifest.name for manifest in catalog.manifests], ["echo", "voice", "web_search"])
+        self.assertEqual(set(catalog.skill_roots), {"echo", "voice", "web_search"})
+        from anima.capabilities.plugins import PluginCatalog
+        with self.assertRaisesRegex(ValueError, "unknown skill provider"):
+            PluginCatalog((), skill_roots={"unknown": None})
 
     def test_invalid_namespace(self):
         for namespace in ("", "bad-name", "anima..plugins"):
