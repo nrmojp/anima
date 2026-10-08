@@ -119,8 +119,16 @@ must not claim to provide an expected score distribution.
 ## Domain mapping and adoption
 
 Addressing builds evidence from the bounded current channel context, preserving
-author and reply identities. A predicate tests whether a response is clearly
-expected. Explicit addressed events retain their classification bypass.
+author and reply identities. One request contains two independent predicates:
+`mentions_self` (including spelling variants, nicknames and third-person references)
+and `expects_reply` (a clearly addressed request). Only `expects_reply` controls
+adoption; a mention is diagnostic, not a prerequisite or automatic response.
+No exact-name, prior-speaker or other-person reply prefilter skips classification.
+Every otherwise eligible ordinary human message reaches the decision service;
+history remains bounded to 20 same-channel events within 10 minutes.
+Mode and bot-author guards remain local. Explicit addressed events retain their
+classification bypass. This increases judgment calls relative to the former name
+gate. Address telemetry includes event ID and both answers/probabilities, not text.
 
 Engagement creates a candidate map: none, speak(target), react(target, face).
 Only allowed actions, current message IDs and available faces are included.

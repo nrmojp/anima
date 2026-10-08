@@ -14,6 +14,9 @@ for shared-code ownership, deployment settings, and extension hook contracts.
   remain background. Target metadata survives adapter tool-context compaction.
 - Contextual addressing uses a bounded OpenAI classifier behind the shared call limiter,
   with a 15-second timeout and fail-closed telemetry. It is disabled in silent mode.
+  Independent self-reference and expected-reply predicates share one decision request;
+  exact-name detection is advisory, never an eligibility gate. Reply adoption uses
+  only the expected-reply answer and the configured threshold.
 - Self-time invalid final decisions receive one record-only repair with tools disabled,
   retaining observations without replaying side effects. Invalid/repaired events log
   validation reasons and field lengths, not private response bodies.
