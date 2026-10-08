@@ -70,6 +70,22 @@ class ContractTests(unittest.TestCase):
 
 
 class BackendTests(unittest.IsolatedAsyncioTestCase):
+    async def test_address_questions_are_independent_and_match_by_name(self):
+        backend = NS(probabilistic=True, evaluate=AsyncMock())
+        classifier = AddressClassifier(backend, policy=Policy(.9))
+        for mention, reply, expected in (
+            (A("mentions_self", "predicate", True, probability=.99), A("expects_reply", "predicate", False, probability=.1), False),
+            (A("mentions_self", "predicate", False, probability=.01), A("expects_reply", "predicate", True, probability=.95), True),
+            (A("mentions_self", "predicate", status="refused"), A("expects_reply", "predicate", True, probability=.95), True),
+            (A("mentions_self", "predicate", True, probability=1), A("expects_reply", "predicate", True, probability=.89), False),
+            (A("mentions_self", "predicate", True, probability=1), A("expects_reply", "predicate", status="unavailable"), False),
+        ):
+            backend.evaluate.return_value = Result((reply, mention))
+            self.assertEqual(await classifier.expects_reply(self.snapshot(), (), self.event()), expected)
+        backend.evaluate.return_value = Result((A("expects_reply", "predicate", True, probability=1),))
+        with self.assertRaises(ValueError):
+            await classifier.expects_reply(self.snapshot(), (), self.event())
+
     def event(self, id="m1"):
         return NS(id=id, author_id="alice", author_name="Alice", reply_to=None, response_to=None,
             reply_author_name=None, reply_text=None, called_name=False, text="hello", author_is_bot=False)
@@ -79,9 +95,11 @@ class BackendTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_domain_classifiers(self):
         backend = NS(probabilistic=True, max_choices=255, evaluate=AsyncMock())
-        backend.evaluate.return_value = Result((A("expects_reply", "predicate", True, probability=.95),))
+        backend.evaluate.return_value = Result((A("mentions_self", "predicate", False, probability=.1), A("expects_reply", "predicate", True, probability=.95)))
         self.assertTrue(await AddressClassifier(backend, policy=Policy(.9)).expects_reply(self.snapshot(), (), self.event()))
-        backend.evaluate.return_value = Result((A("expects_reply", "predicate", status="refused"),))
+        request = backend.evaluate.call_args.args[0]
+        self.assertEqual([q.name for q in request.questions], ["mentions_self", "expects_reply"])
+        backend.evaluate.return_value = Result((A("mentions_self", "predicate", True, probability=.99), A("expects_reply", "predicate", status="refused")))
         self.assertFalse(await AddressClassifier(backend).expects_reply(self.snapshot(), (), self.event()))
         backend.probabilistic=False
         with self.assertRaises(ValueError): AddressClassifier(backend, policy=Policy(.9))
@@ -272,7 +290,7 @@ class BackendTests(unittest.IsolatedAsyncioTestCase):
             settings=settings_at(Path(tmp))
             responder=NS(respond=AsyncMock(return_value=ResponseDraft("other provider", "calm", "test", "ふつう", "")),reload_configuration=lambda **_:None)
             factory=NS(responder=lambda *_args,**_kw:responder,maintainer=lambda *_:NS(),self_time=lambda *_args,**_kw:NS())
-            external=NS(probabilistic=False,max_choices=255,evaluate=AsyncMock(return_value=Result((A("expects_reply","predicate",True),))))
+            external=NS(probabilistic=False,max_choices=255,evaluate=AsyncMock(return_value=Result((A("mentions_self","predicate",False),A("expects_reply","predicate",True)))))
             key=SandboxKey("guild","1");sender=StubDiscordSender(clock=lambda:datetime.now(timezone.utc))
             with patch("anima.bootstrap.app.AsyncOpenAI"):
                 runtime=build_sandbox(settings,key,key.path(settings.state_root),sender,ActivityModeStore(settings.state_root),PluginLoader().load(),asyncio.Semaphore(4),lambda:None,

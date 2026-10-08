@@ -191,23 +191,6 @@ class PersonaActor:
             history = tuple(e for e in snapshot.recent_events
                             if e.channel_id == event.channel_id and e.id != event.id
                             and 0 <= (event.ts - e.ts).total_seconds() <= 600)[-20:]
-            if not event.called_name:
-                own = [e for e in history if e.author_id == "self"]
-                if not own or (event.ts - own[-1].ts).total_seconds() > 120:
-                    return False
-                # Do not carry an old conversational invitation into other people's exchanges.
-                anchor = history.index(own[-1])
-                before = [e for e in history[:anchor] if e.author_id != "self"]
-                linked = next((e for e in history if e.id == (own[-1].response_to or own[-1].reply_to)), None)
-                previous_author = (linked.author_id if linked else None
-                                   if own[-1].response_to else before[-1].author_id if before else None)
-                if previous_author != event.author_id:
-                    return False
-                if any(e.author_id not in {"self", event.author_id}
-                       for e in history[anchor + 1:]):
-                    return False
-            if event.reply_to and not event.reply_to_self:
-                return False
             try:
                 async with asyncio.timeout(15):
                     decision = await self.address_classifier.expects_reply(snapshot, history, event)

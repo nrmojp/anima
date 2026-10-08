@@ -33,7 +33,7 @@ class ActorRoutesTests(unittest.IsolatedAsyncioTestCase):
         self.actor.contextual_reply_allowed = lambda: False
         self.assertFalse(await self.actor._contextual_address(source))
         self.actor.contextual_reply_allowed = lambda: True
-        self.assertFalse(await self.actor._contextual_address(source))
+        self.assertTrue(await self.actor._contextual_address(source))
         from datetime import timedelta
         history = (replace(source, id="human-before"),
                    replace(source, id="self-before", author_id="self", text="何を描こう？"),
@@ -82,7 +82,7 @@ class ActorRoutesTests(unittest.IsolatedAsyncioTestCase):
         from datetime import timedelta
         self.store.ensure_layout(now=NOW)
         source = replace(event(), mention=False, text="あのアイコンにするね")
-        classifier = SimpleNamespace(expects_reply=AsyncMock(return_value=True))
+        classifier = SimpleNamespace(expects_reply=AsyncMock(return_value=False))
         self.actor.address_classifier = classifier
         previous = replace(source, id="previous", text="Soraにも褒められちゃった")
         own = replace(source, id="self-before", author_id="self")
@@ -97,17 +97,18 @@ class ActorRoutesTests(unittest.IsolatedAsyncioTestCase):
                 self.store, "load_snapshot", return_value=SimpleNamespace(recent_events=history)
             ):
                 self.assertFalse(await self.actor._contextual_address(source))
-        classifier.expects_reply.assert_not_awaited()
+        self.assertEqual(classifier.expects_reply.await_count, len(histories))
         with patch.object(self.store, "load_snapshot", return_value=SimpleNamespace(
             recent_events=(previous, own)
         )):
             self.assertFalse(await self.actor._contextual_address(replace(
                 source, text="いつも素敵なアイコンありがとう💕", reply_to="other-message"
             )))
+            classifier.expects_reply.return_value = True
             self.assertTrue(await self.actor._contextual_address(replace(
                 source, ts=NOW+timedelta(seconds=120), text="猫を描いてくれる？"
             )))
-        classifier.expects_reply.assert_awaited_once()
+        self.assertEqual(classifier.expects_reply.await_count, len(histories) + 2)
 
     async def test_contextual_address_uses_recorded_response_source(self):
         source = replace(event(), mention=False)
@@ -118,8 +119,23 @@ class ActorRoutesTests(unittest.IsolatedAsyncioTestCase):
         self.store.ensure_layout(now=NOW)
         with patch.object(self.store, 'load_snapshot', return_value=SimpleNamespace(recent_events=(a, b, own))):
             self.assertTrue(await self.actor._contextual_address(source))
+            self.assertEqual(self.actor.address_classifier.expects_reply.call_args.args[1], (a, b, own))
+        self.actor.address_classifier.expects_reply.return_value = False
         with patch.object(self.store, 'load_snapshot', return_value=SimpleNamespace(recent_events=(a, b, replace(own, response_to='missing')))):
             self.assertFalse(await self.actor._contextual_address(source))
+
+    async def test_unmatched_name_reaches_classifier_without_previous_conversation(self):
+        await self.actor.start()
+        try:
+            classifier = SimpleNamespace(expects_reply=AsyncMock(return_value=True))
+            self.actor.address_classifier = classifier
+            source = replace(event(), id="stretched-name", mention=False, called_name=False,
+                             text="Soora、おるか")
+            self.assertEqual((await self.actor.submit(source, allow_reactions=False)).kind, OutcomeKind.SPOKE)
+            classifier.expects_reply.assert_awaited_once()
+            self.assertEqual(classifier.expects_reply.call_args.args[2].text, source.text)
+        finally:
+            await self.actor.stop()
 
     async def test_name_occurrence_is_classified_not_an_automatic_reply(self):
         await self.actor.start()

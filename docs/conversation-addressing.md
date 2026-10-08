@@ -105,10 +105,13 @@ this action." Claims of the bot's own creation or storage must be supported by
 its execution records or provenance. Being able to join a discussion does not
 make the discussed work the bot's own.
 
-Preserve existing mention, reply-to-bot, and name-addressing checks, together
-with conservative participant-count and timing constraints. Contextual response
-eligibility uses the same history metadata, prioritizing internal response
-sources when identifying whom the bot's preceding post addressed.
+Explicit mentions and replies to the bot retain their direct-response path.
+Other eligible human messages are classified without exact-name, previous-speaker
+or reply-to-human prefilters. The bounded decision service evaluates independent
+`mentions_self` and `expects_reply` questions together. Only the latter controls
+response adoption. Name variants are recognized by the model; mere name mentions
+do not trigger replies. Conservative multi-person criteria live in the decision
+instructions, using the same history metadata and internal response sources.
 When older logs have an unknown response source, an inference may inform the
 decision but must not be saved as a confirmed relationship. For explicit bot
 requests attached to replies to humans, distinguish the requester from the
