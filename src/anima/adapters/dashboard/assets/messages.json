@@ -1,5 +1,7 @@
 {
   "en": {
+    "skills_title": "Skills — task instructions",
+    "skills_reads": "Recent instruction reads (characters / bytes)",
     "skip_to_dashboard_content_63a335ff": "Skip to dashboard content",
     "display_scope_c899e822": "Display scope",
     "observe_a_sandbox_687efc0f": "Observe a sandbox",
@@ -405,6 +407,8 @@
     "language_japanese": "日本語"
   },
   "ja": {
+    "skills_title": "スキル — 作業の手順",
+    "skills_reads": "最近の手順読み込み（文字数 / バイト数）",
     "skip_to_dashboard_content_63a335ff": "ダッシュボードの内容へ",
     "display_scope_c899e822": "表示対象",
     "observe_a_sandbox_687efc0f": "観測する場所",

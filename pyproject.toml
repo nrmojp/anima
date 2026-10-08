@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "A transport-neutral runtime for persona agents and capability plugins"
 readme = "README.md"
 requires-python = ">=3.14"
+dependencies = ["PyYAML>=6.0.3,<7"]
 license = {text = "MIT"}
 authors = [{name = "nirumo"}]
 classifiers = [

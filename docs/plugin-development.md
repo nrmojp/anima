@@ -182,3 +182,11 @@ fields in the manifest rather than editing bootstrap. Secrets remain environment
 
 Run the full test suite, coverage report, public-tree scan, and `git diff --check` before
 submitting the plugin. The architecture test enforces the import direction.
+
+## Bundled skills
+
+Plugins may ship reviewed task instructions at `skills/<name>/SKILL.md` beside
+`plugin.py`. PluginLoader discovers them automatically, and the host exposes only
+enabled, available providers. Include these documents in wheel package data.
+Skills use common resource reads and existing tools; they are not executable entry
+points. See [skills.md](skills.md) for metadata, requirements, safety and examples.

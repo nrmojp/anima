@@ -84,6 +84,27 @@ class CompositionTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(runtime.actor.responder.target.appearance, "Neutral sample.")
                     self.assertEqual(runtime.self_time.max_iterations, 4)
                     self.assertTrue((runtime.actor.store.root / "runtime" / "resources.json").exists())
+                    self.assertTrue((runtime.actor.store.root / "runtime" / "skills.json").exists())
+                    from test_skills import make_skill
+                    make_skill(settings.anima_root / "skills", metadata='metadata:\n  anima.requires: "echo"\n')
+                    runtime.reload_configuration()
+                    prepared = await runtime.actor.responder.target.tool_registry.prepare(CapabilityContext(source, SandboxKey("guild", "1")))
+                    self.assertIn("core:sample", prepared.contextual_instructions)
+                    self.assertNotIn("Secret detailed workflow", prepared.contextual_instructions)
+                    read = await prepared.execute("resource_read", '{"collection":"core.skills","resource_id":"core:sample","attach_to_reply":false}')
+                    self.assertEqual(read.status, "success")
+                    import json
+                    skill_status = json.loads((runtime.actor.store.root / "runtime" / "skills.json").read_text())
+                    self.assertEqual(skill_status["reads"][-1]["skill_id"], "core:sample")
+                    # Plugin-local skills are mounted from the catalog, not the application root.
+                    plugin_root = Path(directory) / "echo-skills"
+                    make_skill(plugin_root, "bundled")
+                    catalog = PluginLoader().load()
+                    catalog.skill_roots["echo"] = plugin_root
+                    other = build_sandbox(settings, SandboxKey("guild", "2"), SandboxKey("guild", "2").path(settings.state_root), StubDiscordSender(clock=lambda: datetime.now(timezone.utc)), ActivityModeStore(settings.state_root), catalog, asyncio.Semaphore(4), lambda: None)
+                    other_context = CapabilityContext(None, SandboxKey("guild", "2"))
+                    other_tools = await other.actor.responder.target.tool_registry.prepare(other_context)
+                    self.assertIn("echo:bundled", other_tools.contextual_instructions)
                 finally:
                     await runtime.actor.stop()
                     await runtime.plugins.stop()

@@ -89,6 +89,9 @@ class DashboardTests(unittest.TestCase):
                 "id": "core.inventory", "scope": "sandbox", "operations": ["list"],
                 "description": "inventory",
             }]}), encoding="utf-8")
+            resources.with_name("skills.json").write_text(json.dumps({"skills": [{"id": "core:example"}], "reads": [{"resource_id": "core:example", "characters": 42}]}))
+            self.assertEqual(data.status("guild:1")["skills"]["skills"][0]["id"], "core:example")
+            self.assertEqual(data.status("guild:2")["skills"], {})
             with (runtime / "anima.jsonl").open("a", encoding="utf-8") as stream:
                 stream.write("\n" + json.dumps({
                     "event": "resource.operation", "sandbox_key": "guild:1",

@@ -118,8 +118,12 @@ class PluginDefinition(Protocol):
 
 
 class PluginCatalog:
-    def __init__(self, definitions: Sequence[PluginDefinition]) -> None:
+    def __init__(self, definitions: Sequence[PluginDefinition], *,
+                 skill_roots: Mapping[str, Path] | None = None) -> None:
         self._definitions = {definition.manifest.name: definition for definition in definitions}
+        self.skill_roots = dict(skill_roots or {})
+        if not set(self.skill_roots) <= set(self._definitions):
+            raise ValueError("unknown skill provider")
         if len(self._definitions) != len(definitions):
             raise ValueError("duplicate plugin name")
         providers: dict[str, str] = {}

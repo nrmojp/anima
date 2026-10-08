@@ -1,5 +1,8 @@
 # Framework design
 
+Skills provide reviewed task procedures over existing capabilities, not new permissions
+or a second execution engine. See [skills.md](skills.md) for the implementation contract.
+
 [Conversation and decision backends](model-backends.md) defines the two
 model boundaries. Both remain independently replaceable across hosted and local
 providers; addressing and engagement are decision uses, not provider-specific ports.

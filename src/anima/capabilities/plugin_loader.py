@@ -6,6 +6,7 @@ from importlib import import_module
 from importlib.util import find_spec
 import pkgutil
 import os
+from pathlib import Path
 
 from anima.capabilities.plugins import PluginCatalog, PluginDefinition
 
@@ -27,6 +28,7 @@ class PluginLoader:
             raise ValueError("plugin namespace must be a package")
 
         definitions: list[PluginDefinition] = []
+        skill_roots: dict[str, Path] = {}
         candidates = sorted(pkgutil.iter_modules(paths), key=lambda candidate: candidate.name)
         for candidate in candidates:
             if not candidate.ispkg:
@@ -43,4 +45,6 @@ class PluginLoader:
                     f"plugin directory and manifest name differ: {candidate.name}"
                 )
             definitions.append(definition)
-        return PluginCatalog(tuple(definitions))
+            if getattr(entry, "__file__", None):
+                skill_roots[definition.manifest.name] = Path(entry.__file__).parent / "skills"
+        return PluginCatalog(tuple(definitions), skill_roots=skill_roots)
