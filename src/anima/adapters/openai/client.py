@@ -640,9 +640,9 @@ class OpenAISelfTimeDecider:
                     )
             return response
 
-        backend = OpenAIThoughtBackend(
-            base_input=base_input, tools=tools, request=request,
-        )
+        from anima.adapters.openai.conversation import OpenAIConversationBackend, OpenAIConversationRequest
+        backend = OpenAIConversationBackend().open(OpenAIConversationRequest(
+            base_input=base_input, tools=tools, request=request))
         executor = OpenAIToolExecutor(prepared, operation="self_time") if prepared else None
         loop = await AgenticLoop(max_tool_rounds=self.max_tool_rounds).run(
             backend=backend, executor=executor,
@@ -949,12 +949,13 @@ class OpenAIResponder:
             if prepared_response is not None:
                 prepared_response.observe_tool_result(result)
 
-        backend = OpenAIThoughtBackend(
+        from anima.adapters.openai.conversation import OpenAIConversationBackend, OpenAIConversationRequest
+        backend = OpenAIConversationBackend().open(OpenAIConversationRequest(
             base_input=lambda number: (
                 input_items if number == 1 else _compact_tool_input(context.input)
             ), tools=tools,
             request=request, observe=observe,
-        )
+        ))
         executor = (
             OpenAIToolExecutor(prepared_tools, operation="respond", consume=consume)
             if prepared_tools is not None else None

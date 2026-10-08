@@ -21,6 +21,22 @@ from anima.core.environment import ConfigurationError, load_dotenv
 KNOWN_PLUGINS = frozenset(DISCOVERED_PLUGINS)
 
 
+def _decision_backend(value):
+    if value not in {"responses", "decisions"}:
+        raise ConfigurationError("unknown decision backend")
+    return value
+
+
+def _threshold(values, name, default):
+    try:
+        value = float(values.get(name, default))
+    except (ValueError, TypeError) as error:
+        raise ConfigurationError("invalid decision threshold: " + name) from error
+    if not math.isfinite(value) or not 0 <= value <= 1:
+        raise ConfigurationError("invalid decision threshold: " + name)
+    return value
+
+
 def _plugin_configuration(root: Path, values: dict[str, str]) -> dict[str, dict]:
     try:
         return _raw_plugin_configuration(root, values)
@@ -106,6 +122,13 @@ class Settings:
     command_prefix: str = "anima"
     plugin_configuration: dict = field(default_factory=dict)
     proactive_decision_daily_limit: int = 100
+    decision_backend: str = "responses"
+    decision_model: str = ""
+    decision_address_threshold: float = 0.9
+    decision_speech_threshold: float = 0.95
+    decision_reaction_threshold: float = 0.9
+    decision_shadow_backend: str = ""
+    decision_shadow_daily_limit: int = 10
 
     def __getattr__(self, name):
         # Compatibility access is derived from declarations, never concrete feature names.
@@ -142,6 +165,13 @@ class Settings:
         state_root = state_value if state_value.is_absolute() else root / state_value
         plugins = selected_plugins(values)
         return cls(
+            decision_shadow_backend=_decision_backend(values["ANIMA_DECISION_SHADOW_BACKEND"]) if values.get("ANIMA_DECISION_SHADOW_BACKEND") else "",
+            decision_shadow_daily_limit=_positive_int(values, "ANIMA_DECISION_SHADOW_DAILY_LIMIT", 10),
+            decision_backend=_decision_backend(values.get("ANIMA_DECISION_BACKEND", "responses")),
+            decision_model=values.get("ANIMA_DECISION_MODEL", "gpt-6-luna" if values.get("ANIMA_DECISION_BACKEND") == "decisions" else ""),
+            decision_address_threshold=_threshold(values, "ANIMA_DECISION_ADDRESS_THRESHOLD", 0.9),
+            decision_speech_threshold=_threshold(values, "ANIMA_DECISION_SPEECH_THRESHOLD", 0.95),
+            decision_reaction_threshold=_threshold(values, "ANIMA_DECISION_REACTION_THRESHOLD", 0.9),
             command_prefix=_command_prefix(values.get("ANIMA_COMMAND_PREFIX", "anima")),
             plugin_configuration=_plugin_configuration(root, values),
             proactive_decision_daily_limit=_positive_int(values, "ANIMA_PROACTIVE_DECISION_DAILY_LIMIT", 100),

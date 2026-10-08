@@ -1,5 +1,9 @@
 # Framework design
 
+[Conversation and decision backends](model-backends.md) defines the two
+model boundaries. Both remain independently replaceable across hosted and local
+providers; addressing and engagement are decision uses, not provider-specific ports.
+
 [Framework composition](framework-composition.md) is the authoritative reference
 for shared-code ownership, deployment settings, and extension hook contracts.
 
