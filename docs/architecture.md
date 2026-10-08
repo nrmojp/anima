@@ -1,5 +1,9 @@
 # Architecture
 
+Provider-neutral conversation and decision boundaries and their host factory injection
+are specified in [model-backends.md](model-backends.md). Default classification uses
+Responses; Decisions and diagnostic shadow comparison require explicit configuration.
+
 [Framework composition](framework-composition.md) is the authoritative reference
 for shared-code ownership, deployment settings, and extension hook contracts.
 

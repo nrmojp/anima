@@ -30,6 +30,7 @@ from anima.core.expressions import FaceCatalog
 from anima.core.access import ActivityModeStore, ActivityPolicy
 from anima.core.proactivity import ProactiveDecisionEngine
 from anima.adapters.openai.client import OpenAIAddressClassifier, OpenAIReactionClassifier
+from anima.bootstrap.model_backends import OpenAIConversationFactory, decision_classifiers
 from anima.bootstrap.cli import _pid_exists
 from anima.bootstrap.process_guard import ProcessLock, mark_previous_unclean_shutdown
 from anima.adapters.dashboard.server import DashboardServer
@@ -52,7 +53,7 @@ from anima.core.resources import ResourceCollectionSpec, ResourceRegistration, R
 JST = ZoneInfo("Asia/Tokyo")
 
 
-def build_client(settings: Settings) -> AnimaDiscordClient:
+def build_client(settings: Settings, *, conversation_factory=None, decision_factory=None) -> AnimaDiscordClient:
     require_separated_layout(settings.state_root)
     sender = DiscordMessageSender(faces=FaceCatalog.load(settings.anima_root / "faces.json"))
     activity_modes = ActivityModeStore(settings.state_root)
@@ -64,7 +65,8 @@ def build_client(settings: Settings) -> AnimaDiscordClient:
     api_limit = asyncio.Semaphore(4)
     router = SandboxRouter(settings.state_root,
         lambda key, root: build_sandbox(settings, key, root, sender, activity_modes,
-                                        plugin_catalog, api_limit, lambda: holder["client"]),
+                                        plugin_catalog, api_limit, lambda: holder["client"],
+                                        conversation_factory=conversation_factory, decision_factory=decision_factory),
         policy=ActivityPolicy(settings.allowed_guild_ids, settings.dm_enabled))
     client = AnimaDiscordClient(actor=router, sender=sender, activity_modes=activity_modes,
         status_path=settings.state_root / "runtime" / "status.json",
@@ -76,7 +78,8 @@ def build_client(settings: Settings) -> AnimaDiscordClient:
     return client
 
 
-def build_sandbox(settings, key, root, sender, activity_modes, plugin_catalog, api_limit, client_provider):
+def build_sandbox(settings, key, root, sender, activity_modes, plugin_catalog, api_limit, client_provider,
+                  *, conversation_factory=None, decision_factory=None):
     store = FileStateStore(root, sandbox_key=key, resource_root=settings.anima_root,
         recent_limit=settings.recent_limit, digest_max_lines=settings.digest_max_lines,
         memory_max_lines=settings.memory_max_lines, memory_strong_max=settings.memory_strong_max,
@@ -92,15 +95,19 @@ def build_sandbox(settings, key, root, sender, activity_modes, plugin_catalog, a
     jobs = PluginJobManager(root / "runtime" / "plugin-jobs.json")
     modes = ModeRegistry(root / "runtime" / "modes.json", [jobs])
     memory_retriever = LocalMemoryRetriever(root)
-    responder = OpenAIResponder(api_key=settings.openai_api_key, model=settings.openai_model,
-        timeout_seconds=settings.openai_response_timeout_seconds, max_retries=0,
+    conversation_factory = conversation_factory or OpenAIConversationFactory(
+        responder_type=OpenAIResponder, maintainer_type=OpenAIMemoryMaintainer, self_time_type=OpenAISelfTimeDecider)
+    address_classifier, classifier = decision_classifiers(settings,
+        AsyncOpenAI(api_key=settings.openai_api_key, timeout=15, max_retries=0), decision_factory=decision_factory,
+        store=store, semaphore=api_limit)
+    decision_services = (classifier.backend,) if settings.decision_shadow_backend else ()
+    responder = conversation_factory.responder(settings,
         tool_registry=ToolRegistry(), sandbox_key=key, memory_vector_store=memory_vector_store,
         memory_retriever=memory_retriever,
         appearance=(settings.anima_root / "appearance.md").read_text(encoding="utf-8"))
     actor = PersonaActor(store=store, context_builder=ContextBuilder(root / "attachments", inventory=inventory, modes=modes),
         responder=LimitedCalls(responder, api_limit),
-        maintainer=LimitedCalls(OpenAIMemoryMaintainer(api_key=settings.openai_api_key, model=settings.openai_model,
-            reflection_model=settings.openai_reflection_model, timeout_seconds=settings.openai_maintenance_timeout_seconds, max_retries=0), api_limit),
+        maintainer=LimitedCalls(conversation_factory.maintainer(settings), api_limit),
         memory_index=memory_vector_store, sender=sender, proactive_sender=sender, clock=clock,
         response_timeout_seconds=settings.openai_response_timeout_seconds,
         send_timeout_seconds=settings.discord_send_timeout_seconds,
@@ -109,12 +116,11 @@ def build_sandbox(settings, key, root, sender, activity_modes, plugin_catalog, a
         retry_base_delay_seconds=settings.retry_base_delay_seconds,
         proactive_allowed=lambda: activity_modes.get(key) == "proactive",
         contextual_reply_allowed=lambda: activity_modes.get(key) != "silent",
-        address_classifier=LimitedCalls(OpenAIAddressClassifier(
-            client=AsyncOpenAI(api_key=settings.openai_api_key, timeout=15, max_retries=0), model=settings.openai_model), api_limit) if key.kind == "guild" else None)
+        address_classifier=LimitedCalls(address_classifier, api_limit) if key.kind == "guild" else None)
     # A sender's optional face protocol must not implicitly enable an absent plugin.
     actor.face_preparer = None
     actor.face_presenter = None
-    classifier = LimitedCalls(OpenAIReactionClassifier(client=api_client(), model=settings.openai_model), api_limit)
+    classifier = LimitedCalls(classifier, api_limit)
     if key.kind == "guild":
         actor.reactions = ProactiveDecisionEngine(store, classifier,
             decision_limit=settings.proactive_decision_daily_limit, daily_limit=settings.proactive_daily_limit,
@@ -168,7 +174,7 @@ def build_sandbox(settings, key, root, sender, activity_modes, plugin_catalog, a
         internal_actions.update(getattr(plugin, "internal_action_tools", ()))
     internal_tools = ToolRegistry((*internal_providers, primitive_resources), owners=internal_owners)
     self_time = SelfTimeService(root / "runtime" / "self-time.json",
-        LimitedCalls(OpenAISelfTimeDecider(client=api_client(), model=settings.openai_model,
+        LimitedCalls(conversation_factory.self_time(settings, client=api_client(),
             tool_registry=internal_tools, sandbox_key=key, allowed_action_tools=frozenset(internal_actions)), api_limit),
         lambda: {**store.self_time_context(), "inventory": inventory.summary(), "active_modes": modes.summary()},
         lambda decision, now: store.commit_self_time(decision, now=now), clock=clock,
@@ -193,7 +199,7 @@ def build_sandbox(settings, key, root, sender, activity_modes, plugin_catalog, a
     runtime = SandboxRuntime(actor=actor, commands=CommandRegistry((*plugins.commands.providers, *administration_commands)),
                              plugins=plugins, jobs=jobs,
                              modes=modes, self_time=self_time, reload_configuration=reload_configuration,
-                             audio_output=audio, services=(audio, ingress))
+                             audio_output=audio, services=(audio, ingress, *decision_services))
     for name in ("voice", "music", "dj", "reminders"):
         setattr(runtime, name, assembly.get(name))
     return runtime
