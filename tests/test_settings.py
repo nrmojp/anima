@@ -23,6 +23,11 @@ class ConfigurationTests(unittest.TestCase):
             "ANIMA_PLUGINS",
         })
         self.assertNotIn("ANIMA_REACTIONS_ENABLED", path.read_text(encoding="utf-8"))
+        values = load_dotenv(path, environ={})
+        self.assertEqual(values["ANIMA_PLUGINS"], "")
+        self.assertEqual(values["ANIMA_ALLOWED_GUILD_IDS"], "")
+        self.assertEqual(values["ANIMA_DM_ENABLED"], "false")
+        self.assertEqual(values["ANIMA_ENABLE_WEB_SEARCH"], "false")
 
     def test_dotenv_comments_quotes_and_existing_values(self):
         with TemporaryDirectory() as directory:
