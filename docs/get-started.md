@@ -58,11 +58,12 @@ Use concise, warm language. Be honest about uncertainty.
 No fixed appearance is defined yet.
 ```
 
-Create `.env` in `my-bot/` and replace the three placeholder values:
+Create `.env` in `my-bot/`, fill in the two credential fields locally, and
+replace the test guild ID placeholder:
 
 ```dotenv
-DISCORD_BOT_TOKEN=<your bot token>
-OPENAI_API_KEY=<your API key>
+DISCORD_BOT_TOKEN=
+OPENAI_API_KEY=
 ANIMA_ALLOWED_GUILD_IDS=<your test guild ID>
 ANIMA_PERSONA_NAMES=Sora
 ANIMA_COMMAND_PREFIX=sora
