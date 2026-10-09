@@ -4,18 +4,22 @@ For plugins in another application package, configure `ANIMA_PLUGIN_NAMESPACE`
 as described in [using Anima as a library](library.md). Do not copy or shadow the
 framework's `anima` package.
 
-If you are starting a new bot, first follow [Build your own bot](build-your-bot.md).
+If you are starting a new bot, first follow [Get started](get-started.md), then
+[Build your own bot](build-your-bot.md).
 Persona-only customization needs configuration, not a Plugin. This guide covers
 capabilities that add behavior beyond the base conversation and memory system.
 
 [Framework composition](framework-composition.md) is the authoritative reference
 for shared-code ownership, deployment settings, and extension hook contracts.
 
-A Capability Plugin is trusted, in-tree code added after forking or copying this
-repository. `PluginLoader` automatically discovers immediate child packages of
-`anima.plugins`; it does not discover installed distributions or hot-load code.
+A Capability Plugin is trusted Python code. `PluginLoader` discovers immediate
+child packages of the configured namespace (default `anima.plugins`); it does
+not scan arbitrary installed distributions or hot-load code.
 
-Use `src/anima/plugins/<plugin_id>/` for every plugin. The built-in reference lives at
+For application Plugins, use your own installed package such as
+`my_bot/plugins/<plugin_id>/` and set `ANIMA_PLUGIN_NAMESPACE=my_bot.plugins`.
+Use `src/anima/plugins/<plugin_id>/` only for bundled framework examples.
+The built-in reference lives at
 `src/anima/plugins/echo/`. Use a stable lowercase plugin ID and keep plugin-specific
 SDK integrations and helper code inside this directory. Keep `__init__.py` as a small public-API facade; put behavior in
 focused modules such as `plugin.py`, `config.py`, or `ports.py`.

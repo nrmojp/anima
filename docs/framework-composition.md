@@ -91,7 +91,7 @@ visual traits, drawing defines style and signature, and dashboard defines
 display branding. Set age or behavior such as "express anger cutely" in the
 persona, not in shared prompts.
 
-## Synchronization and compatibility
+## Dependency updates and compatibility
 
 Install Anima from a reviewed Git commit or a wheel, and keep application
 plugins in a separate package. See [library usage](library.md) for dependency
@@ -99,20 +99,10 @@ integration. Develop shared changes in Anima, then update the consuming
 application's pinned dependency after validation. Do not edit installed package
 files or copy framework implementation into an application namespace.
 
-`framework-lock.json` records a SHA-256 fingerprint computed from the names and
-contents of shared files. The fingerprint check detects unexpected changes in
-the framework distribution:
-
-```sh
-python scripts/check_framework_sync.py
-```
-
-For deployments that intentionally vendor a compatibility snapshot, the
-optional `--peer /path/to/anima-worktree` compares the shared scope. Keep such
-snapshots byte-for-byte identical rather than maintaining divergent framework
-implementations. `--fingerprint` only prints a proposed lock for review; it does
-not modify files. Persona, plugin, deployment, and runtime files are excluded
-from the shared fingerprint.
+The dependency's Git commit or published package version identifies the reviewed
+framework revision. Validate upgrades with unit tests, coverage, package checks,
+and deployment-specific integration tests. A second source-tree fingerprint or
+vendored-copy synchronization step is not required.
 
 For compatibility with existing logs, shared code retains music/research data
 types in `Event` and `ResponseDraft`, legacy status fields, and readers for

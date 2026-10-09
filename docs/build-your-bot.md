@@ -8,15 +8,16 @@ complete set of entertainment or business features.
 The simplest customization is a persona-only, text-only Discord bot. You can add
 capabilities later without editing the conversation engine.
 
-## 1. Make your own project
+## 1. Start with a separate application
 
-Fork the repository or copy/clone it into your own working directory:
+Follow [Get started](get-started.md) to install Anima as a pinned dependency,
+create your own configuration, and verify a first text reply. The remaining
+sections explain customization and optional capabilities. Keep application code
+outside the `anima` namespace; see [library usage](library.md).
 
-```sh
-git clone https://github.com/nrmojp/anima.git my-bot
-cd my-bot
-cp .env.example .env
-```
+Forking or cloning the framework is an alternative for developing Anima itself.
+The source-checkout commands below apply only to that alternative, not to an
+application using the installed library.
 
 Use a private repository or local checkout if your persona or configuration should
 not be public. Anima's MIT license covers its original code, not third-party content
@@ -100,7 +101,13 @@ usage in the dashboard; do not use private test data without appropriate permiss
 
 ## 4. Run and check it
 
-With Python 3.14, from the project root (POSIX shell):
+For an application with Anima installed, run from its root (POSIX shell):
+
+```sh
+.venv/bin/anima run
+```
+
+For a framework checkout instead, install from source with Python 3.14 or later:
 
 ```sh
 python3.14 -m venv .venv
@@ -111,7 +118,7 @@ python3.14 -m venv .venv
 The application loads `.env` automatically. On Windows, use the corresponding
 `.venv\Scripts\` executables. Stop a local foreground process with Ctrl+C.
 
-Alternatively, build and run the local container:
+Alternatively, from a framework checkout, build and run the supplied local container:
 
 ```sh
 mkdir -p state
@@ -136,8 +143,9 @@ it up before migrations. [Backup and recovery](backup.md) describes the offline 
 
 ## 5. Add only the capabilities you want
 
-Installed does not mean enabled. `PluginLoader` discovers `src/anima/plugins/<id>/plugin.py`,
-while `ANIMA_PLUGINS` selects which discovered Plugins run.
+Installed does not mean enabled. By default, `PluginLoader` discovers the bundled
+`anima.plugins` package. `ANIMA_PLUGIN_NAMESPACE` selects your installed application
+Plugin package instead; `ANIMA_PLUGINS` selects enabled IDs within that catalog.
 
 | Bundled Plugin | Purpose |
 | --- | --- |
@@ -161,8 +169,15 @@ assets are not bundled. A Plugin or your own implementation is needed for those 
 
 ## 6. Create a Plugin when configuration is not enough
 
-Use `src/anima/plugins/echo/` as the smallest working reference. Add your own directory
-under `src/anima/plugins/` and export `PLUGIN` from its `plugin.py`.
+Use the bundled `anima.plugins.echo` as the smallest working reference. Keep your
+own Plugin under your application's package, such as `my_bot/plugins/greeting/`,
+and export `PLUGIN` from its `plugin.py`. Install your package and set
+`ANIMA_PLUGIN_NAMESPACE=my_bot.plugins`. See [library usage](library.md) for
+discovery and packaging details; the selected namespace replaces the bundled
+catalog rather than merging it.
+
+Only when developing the framework's bundled examples in a source checkout,
+use `src/anima/plugins/`. Do not edit the installed Anima package.
 
 When copying the example, change its manifest name, capability IDs, tool names,
 command paths, configuration namespace, and environment variable names so it does
@@ -192,7 +207,7 @@ Plugins, and runtime state in `state/`. This keeps framework upgrades separate f
 your character and capabilities.
 
 Before committing code changes, run all unit tests, inspect coverage, and run
-`git diff --check`. `python scripts/check_framework_sync.py` verifies the common
-framework snapshot; adding a persona or Plugin does not change that snapshot.
-If you deliberately modify the framework itself, review the change, test it, and
-update its lock as described in [framework composition](framework-composition.md).
+`git diff --check`. Develop shared framework changes in Anima, then update your
+application's pinned dependency after the changes have been tested and merged.
+Do not copy framework code into your application; see
+[framework composition](framework-composition.md).

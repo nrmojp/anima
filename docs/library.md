@@ -4,6 +4,7 @@ Anima is both a reusable Python runtime and an optional standalone bot host.
 The distribution contains only the `anima` package, dashboard assets, and typing
 marker. Persona configuration, credentials, state, and model/media files belong
 to the consuming application, not to the wheel.
+For a complete first launch, follow [Get started](get-started.md).
 
 ## Dependency and Python version
 

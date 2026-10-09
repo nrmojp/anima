@@ -22,7 +22,6 @@ jobs:
         with:
           node-version: "22"
       - run: node --test tests/dashboard_scope.test.cjs
-      - run: python scripts/check_framework_sync.py
       - run: python scripts/check_public_tree.py
 
   package:

@@ -6,24 +6,27 @@ providers.
 
 This repository is pre-alpha. The public contracts may change before `1.0`.
 
-## Build your own bot
+## Get started
 
-Anima can also be installed as a dependency of your own application, with
-plugins in a separate Python package. See [using Anima as a library](docs/library.md).
+Start with [Get started](docs/get-started.md) to install a pinned Anima dependency,
+create a minimal text-only bot, and verify its first reply. No framework checkout
+or Plugin is required for that first launch.
 
 Anima is a **base to build on**, not a finished character bot or a collection of
-ready-made features. Fork or copy it, define your persona in `config/`, choose the
-capabilities you need, and run your own Discord application. A text-only bot needs
+ready-made features. Keep your application, persona in `config/`, and Plugins
+separate from the Anima dependency. A text-only bot needs
 configuration changes, not changes to the framework.
 
-Start with [Build your own bot](docs/build-your-bot.md): it walks through persona
-files, credentials, a first text-only launch, optional capabilities, and adding your
-own Plugin. The bundled Echo and local Voice Plugins are reference implementations;
+Continue with [Build your own bot](docs/build-your-bot.md) for customization and
+[library usage](docs/library.md) for packaging. The bundled Echo and local Voice
+Plugins are reference implementations;
 you do not need to keep them enabled.
 
-## Run the Discord bot and dashboard
+## Run from a framework checkout
 
-Requirements: Python 3.14, a Discord bot with Message Content Intent enabled, and an
+This alternative is for framework development or trying the repository's local
+Docker recipe. Requirements: Git, Docker with Compose v2 (or Python 3.14 or later
+for a local process), a Discord bot with Message Content Intent enabled, and an
 OpenAI API key.
 
 ```sh
@@ -49,10 +52,9 @@ set `ANIMA_DASHBOARD_ADMIN_TOKEN` to a long private token to enable edits and re
 For a local process:
 
 ```sh
-python -m venv .venv
+python3.14 -m venv .venv
 .venv/bin/python -m pip install -e '.[bot]'
-set -a; source .env; set +a
-.venv/bin/anima-bot
+.venv/bin/anima run
 ```
 
 Edit `config/persona.md` and `config/rules.md` to create a persona. Keep private persona
