@@ -57,6 +57,30 @@ Continue with [Build your own bot](docs/build-your-bot.md) for customization and
 Plugins are reference implementations;
 you do not need to keep them enabled.
 
+## Skills: teach workflows without adding tools
+
+Skills are reviewed `SKILL.md` instructions that teach an agent how to combine
+existing tools. They complement Plugins and persona configuration:
+
+| Extension | Purpose |
+| --- | --- |
+| Persona | Defines the character, voice, and behavior |
+| Plugin | Adds capabilities, tools, commands, or dashboard contributions |
+| Skill | Explains how to use available tools to accomplish a task |
+
+For example, you can write Skills for research notes, artifact organization, or
+lyric writing. These are workflow examples, not bundled Skills or new capabilities;
+any required search or creation tools must already be available.
+
+Add application Skills at `<ANIMA_ROOT>/skills/<name>/SKILL.md`, or bundle them
+under a Plugin's `skills/` directory. The model initially sees only an ID and short
+description, then reads the instructions when needed through existing resource
+operations. Instruction bodies stay within the current run and are not carried
+into later conversation runs. Skills do not grant permissions or execute scripts.
+
+See [Skills](docs/skills.md) for a complete example, metadata, discovery rules,
+context lifecycle, and safety limits.
+
 ## Run from a framework checkout
 
 This alternative is for framework development or trying the repository's local
