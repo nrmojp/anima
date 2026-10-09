@@ -1,10 +1,45 @@
 # Anima
 
+[![Tests](https://github.com/nrmojp/anima/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/nrmojp/anima/actions/workflows/test.yml)
+
 Anima is a transport-neutral Python foundation for persona agents. It separates a
 SDK-independent core from optional capabilities and from adapters such as Discord or model
 providers.
 
 This repository is pre-alpha. The public contracts may change before `1.0`.
+
+## How it fits together
+
+Discord is the user-facing interface; Anima runs the agent. Your application supplies
+the persona and optional Plugins, without copying or modifying the framework.
+
+```mermaid
+flowchart LR
+    User[Users] <--> Discord[Discord adapter]
+    Discord <--> Anima["Anima foundation<br/>Conversation and decision loops<br/>Memory and resource operations"]
+    Config["Your bot configuration<br/>Persona and behavior"] --> Anima
+    Anima <--> Models["Replaceable model adapters<br/>Conversation and decisions"]
+    Anima <--> Plugins["Optional application Plugins<br/>Voice, music, drawing, and more"]
+    Anima <--> Storage["Sandbox-scoped storage<br/>Memory, inventory, and state"]
+    Dashboard["Dashboard<br/>Status and configuration"] <--> Anima
+```
+
+The core contracts are transport- and provider-neutral. Discord is the supplied
+chat adapter, not a dependency of the core. See [Architecture](docs/architecture.md)
+for internal boundaries and [Plugin development](docs/plugin-development.md) for
+extension contracts.
+
+## What you can build
+
+| Bot | Starting point | Optional extensions |
+| --- | --- | --- |
+| A character chat companion | Persona, conversation, and sandbox-scoped memory | Your own behavior and resource Plugins |
+| A voice companion | The text bot plus the bundled local Voice reference Plugin | Music and sound-effect Plugins through the shared mixer |
+| A creative assistant | Conversation, inventory, and temporary artifacts | Your own drawing or other creation Plugins |
+| A specialized community bot | The same foundation with your configuration | Domain-specific tools, commands, and dashboard panels |
+
+Music and drawing are extension examples, not bundled features. Start with a
+text-only bot, then add only the Plugins your application needs.
 
 ## Get started
 
