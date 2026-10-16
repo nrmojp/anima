@@ -62,7 +62,7 @@ class InventoryStoreTests(unittest.TestCase):
             self.store.stage_file("large.bin", large)
 
     def test_unicode_filename_preserves_drawing_when_kept(self):
-        source_id = "drawing-20261015-103912-1560104727889313793.png"
+        source_id = "drawing-20260101-120000-test-message.png"
         self.store.stage_bytes(source_id, b"png")
         item = self.store.keep(source_id, filename="影墨のタコ忍者.png")
         self.assertEqual(item.id, "影墨のタコ忍者.png")
