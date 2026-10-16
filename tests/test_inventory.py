@@ -61,6 +61,30 @@ class InventoryStoreTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "too large"):
             self.store.stage_file("large.bin", large)
 
+    def test_unicode_filename_preserves_drawing_when_kept(self):
+        source_id = "drawing-20261015-103912-1560104727889313793.png"
+        self.store.stage_bytes(source_id, b"png")
+        item = self.store.keep(source_id, filename="影墨のタコ忍者.png")
+        self.assertEqual(item.id, "影墨のタコ忍者.png")
+        self.assertEqual(self.store.resolve(item.id).read_bytes(), b"png")
+        self.assertFalse((self.store.temporary_root / source_id).exists())
+        for filename in ("猫 🐈 (完成！).md", ".note.md", "a" * 252 + ".md"):
+            with self.subTest(filename=filename):
+                self.store.write_text(filename, "覚え書き")
+                self.assertEqual(self.store.read_text(filename), "覚え書き")
+
+    def test_filename_rejects_paths_and_nonportable_names(self):
+        for filename in (
+            "", ".", "..", "../猫.png", "/猫.png", "dir/猫.png",
+            "dir\\猫.png", "C:猫.png", 'a"b', "a<b", "a>b", "a|b",
+            "a?b", "a*b", "a\x00b", "a\nb", "a\x7fb", "猫.", "猫 ",
+            "CON", "nul.png", "COM1.md", "lpt9.png", "COM¹.txt",
+            "a" * 256, "猫" * 85 + ".png",
+        ):
+            with self.subTest(filename=filename):
+                with self.assertRaisesRegex(ValueError, "Unicode names are allowed"):
+                    self.store.write_text(filename, "x")
+
     def test_import_file_validates_and_copies_to_inventory(self):
         source = self.root / "source.bin"
         source.write_bytes(b"content")

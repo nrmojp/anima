@@ -12,7 +12,8 @@ import shutil
 from anima.core.sandbox import SandboxKey, reject_symlinks
 
 
-SAFE_ARTIFACT_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
+INVALID_ARTIFACT_CHARACTERS = re.compile(r'[<>:"/\\|?*\x00-\x1f\x7f]')
+RESERVED_ARTIFACT_NAME = re.compile(r"^(CON|PRN|AUX|NUL|COM[1-9¹²³]|LPT[1-9¹²³])(?:\.|$)", re.IGNORECASE)
 MAX_ARTIFACT_BYTES = 25 * 1024 * 1024
 MAX_TEXT_BYTES = 256 * 1024
 DEFAULT_MAX_ITEMS = 500
@@ -233,8 +234,18 @@ class InventoryStore:
                 yield self.describe(path.name, location=location)
 
     def _path(self, root: Path, artifact_id: str) -> Path:
-        if not SAFE_ARTIFACT_ID.fullmatch(artifact_id) or artifact_id in {".", ".."}:
-            raise ValueError("artifact ID is invalid")
+        if (
+            not artifact_id or artifact_id in {".", ".."}
+            or INVALID_ARTIFACT_CHARACTERS.search(artifact_id)
+            or artifact_id.endswith((".", " "))
+            or RESERVED_ARTIFACT_NAME.match(artifact_id)
+            or len(artifact_id.encode("utf-8")) > 255
+        ):
+            raise ValueError(
+                "artifact ID is invalid: use a filename of at most 255 UTF-8 bytes; "
+                'no path separators, control characters, <>:"|?*, trailing dot/space, '
+                "or Windows reserved names; Unicode names are allowed"
+            )
         reject_symlinks(root, self.sandbox_root)
         path = root / artifact_id
         reject_symlinks(path, self.sandbox_root)
