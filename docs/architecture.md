@@ -121,6 +121,10 @@ plugin fields into the final strict schema without allowing replacement of core 
 Plugins declare `ResourceRegistration` values, not additional CRUD function names.
 `ResourceRegistry` enforces collection scope, operation permissions, and transfer policy.
 Core supplies inventory, temporary artifacts, current attachments, memory, and open items.
+Inventory and temporary artifact IDs are single filenames, including Unicode names
+such as `影墨のタコ忍者.png`. They must fit within 255 UTF-8 bytes. Path separators,
+control characters, Windows-invalid filename characters and reserved device names,
+and trailing dots or spaces are rejected for safe, portable storage.
 The model uses common list/search/read/write/delete/transfer operations.
 
 ## Memory and maintenance
