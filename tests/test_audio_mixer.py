@@ -34,6 +34,17 @@ class Output:
     def is_playing(self):
         return self.playing
 
+    def is_paused(self):
+        return getattr(self, "paused", False)
+
+    def pause(self):
+        self.playing = False
+        self.paused = True
+
+    def resume(self):
+        self.playing = True
+        self.paused = False
+
     def play(self, source):
         self.sources.append(source)
         self.playing = True
@@ -114,6 +125,54 @@ class MixingAudioSourceTests(unittest.TestCase):
 
 
 class DiscordAudioMixerTests(unittest.TestCase):
+    def test_completion_callback_can_submit_next_input_after_idle(self):
+        mixer = DiscordAudioMixer()
+        output = Output()
+        source = mixer.attach_output(output)
+        def next_input(error):
+            mixer.play_input(AudioInput(AudioLane.SPEECH, FakePCM([pcm(100)]), lambda _: None))
+        mixer.play_input(AudioInput(AudioLane.SPEECH, FakePCM([]), next_input))
+        source.read()
+        self.assertTrue(output.is_playing())
+        self.assertTrue(mixer.input_active(AudioLane.SPEECH))
+        source.read()
+        source.read()
+        self.assertTrue(output.is_paused())
+
+    def test_idle_pauses_and_every_lane_resumes_same_stream(self):
+        mixer = DiscordAudioMixer()
+        output = Output()
+        source = mixer.attach_output(output)
+        source.read()
+        self.assertTrue(output.is_paused())
+        self.assertIs(mixer.attach_output(output), source)
+        source.read()  # repeated idle does not restart the stream
+        for lane in AudioLane:
+            with self.subTest(lane=lane):
+                mixer.play_input(AudioInput(lane, FakePCM([pcm(100)]), lambda _: None))
+                self.assertTrue(output.is_playing())
+                source.read()
+                self.assertTrue(output.is_playing())
+                source.read()
+                self.assertTrue(output.is_paused())
+        self.assertEqual(len(output.sources), 1)
+
+    def test_stop_waits_for_other_lanes_and_errors_return_to_idle(self):
+        mixer = DiscordAudioMixer()
+        output = Output()
+        source = mixer.attach_output(output)
+        mixer.play_input(AudioInput(AudioLane.MUSIC, FakePCM([pcm(100)]), lambda _: None))
+        mixer.play_input(AudioInput(AudioLane.SPEECH, FakePCM([]), lambda _: None))
+        mixer.stop_input(AudioLane.SPEECH)
+        self.assertTrue(output.is_playing())
+        mixer.stop_input(AudioLane.MUSIC)
+        self.assertTrue(output.is_paused())
+        errors = []
+        mixer.play_input(AudioInput(AudioLane.EFFECT, FakePCM([], ValueError('decode')), errors.append))
+        source.read()
+        self.assertTrue(output.is_paused())
+        self.assertIsInstance(errors[0], ValueError)
+
     def test_attach_reuse_replace_detach_and_busy_output(self):
         mixer = DiscordAudioMixer()
         first = Output()

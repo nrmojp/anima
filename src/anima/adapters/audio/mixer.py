@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from array import array
+from collections.abc import Callable
 from dataclasses import dataclass
 import threading
 
@@ -22,7 +23,8 @@ class MixingAudioSource(discord.AudioSource):
     """Thread-safe two-channel mixer with automatic music ducking."""
 
     def __init__(self, *, music_volume: float = 0.55, ducking_volume: float = 0.16,
-                 speech_volume: float = 1.0, effect_volume: float = 1.0) -> None:
+                 speech_volume: float = 1.0, effect_volume: float = 1.0,
+                 activity_changed: Callable[[bool], None] | None = None) -> None:
         self.music_volume = max(0.0, min(1.0, music_volume))
         self.ducking_volume = max(0.0, min(1.0, ducking_volume))
         self.speech_volume = max(0.0, min(1.0, speech_volume))
@@ -32,6 +34,7 @@ class MixingAudioSource(discord.AudioSource):
         self._effect: _Slot | None = None
         self._lock = threading.RLock()
         self._closed = False
+        self._activity_changed = activity_changed
 
     def is_opus(self) -> bool:
         return False
@@ -55,15 +58,26 @@ class MixingAudioSource(discord.AudioSource):
             for data in (music, effect, speech):
                 if data:
                     output = _mix(output, data)
+            self._notify_activity()
         for callback, error in callbacks:
             callback(error)
         return output
 
     def play_input(self, value: AudioInput) -> None:
-        self._replace(_lane_attribute(value.lane), value.source, value.after)
+        with self._lock:
+            self._replace(_lane_attribute(value.lane), value.source, value.after)
+            self._notify_activity()
 
     def stop_input(self, lane: AudioLane) -> None:
-        self._stop(_lane_attribute(lane))
+        with self._lock:
+            self._stop(_lane_attribute(lane))
+            self._notify_activity()
+
+    def _notify_activity(self) -> None:
+        # Serialize idle/publish transitions with input submission so a new input
+        # cannot be paused by the previous frame's idle notification.
+        if self._activity_changed is not None:
+            self._activity_changed(any((self._music, self._speech, self._effect)))
 
     def input_active(self, lane: AudioLane) -> bool:
         with self._lock:
@@ -166,7 +180,7 @@ class DiscordAudioMixer:
         self.connection: discord.VoiceClient | None = None
 
     def attach_output(self, connection: AudioStreamOutput) -> MixingAudioSource:
-        if self.connection is connection and connection.is_playing():
+        if self.connection is connection and (connection.is_playing() or connection.is_paused()):
             return self.source
         if self.connection is not connection and connection.is_playing():
             raise RuntimeError("audio output is already playing another source")
@@ -176,12 +190,23 @@ class DiscordAudioMixer:
                 music_volume=self.music_volume,
                 ducking_volume=self.ducking_volume,
                 speech_volume=self.speech_volume, effect_volume=self.effect_volume,
+                activity_changed=lambda active: self._set_output_activity(connection, active),
             )
             self.connection = connection
         if connection.is_playing():
             raise RuntimeError("Discord voice connection is already playing another source")
         connection.play(self.source)
         return self.source
+
+    @staticmethod
+    def _set_output_activity(connection: AudioStreamOutput, active: bool) -> None:
+        # Public transport controls also update Discord's speaking flag. Keep
+        # the source alive while idle; returning EOF would close the mixer.
+        if active:
+            if connection.is_paused():
+                connection.resume()
+        elif connection.is_playing():
+            connection.pause()
 
     def detach_output(self) -> None:
         self.source.cleanup()

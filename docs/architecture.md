@@ -154,6 +154,9 @@ The host exposes sandbox-bound event ingress, message output, audio output, retr
 plugin storage, inventory, jobs, and background notification. Plugins do not receive a
 Discord client or an unrestricted state root. Audio keeps the existing shared speech,
 music, and effect mixer, volume controls, ducking, and local eSpeak NG sample.
+When all mixer lanes are idle, the transport pauses (clearing Discord's speaking
+indicator) without closing the mixer. Submitting any lane resumes playback.
+Input submission and idle transitions are serialized to avoid pausing new audio.
 
 `PluginLoader` discovers trusted `plugins/*/plugin.py` definitions deterministically.
 Typed configuration and dashboard metadata come from manifests. The dashboard renders
