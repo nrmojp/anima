@@ -30,6 +30,17 @@ class VoiceClient:
     def is_playing(self):
         return self.playing
 
+    def is_paused(self):
+        return getattr(self, "paused", False)
+
+    def pause(self):
+        self.playing = False
+        self.paused = True
+
+    def resume(self):
+        self.playing = True
+        self.paused = False
+
     def play(self, source):
         self.sources.append(source)
         self.playing = True
