@@ -44,6 +44,7 @@ from anima.core.services import SandboxServices
 from anima.core.inventory import InventoryStore
 from anima.core.jobs import PluginJobManager
 from anima.core.modes import ModeRegistry
+from anima.core.observations import RuntimeObservationRegistry
 from anima.core.self_time import SelfTimeService
 from anima.bootstrap.native_tools import WebSearchToolProvider
 from anima.bootstrap.resource_providers import AttachmentResourceProvider, InventoryResourceProvider, MemoryResourceProvider, OpenItemsResourceProvider
@@ -95,6 +96,7 @@ def build_sandbox(settings, key, root, sender, activity_modes, plugin_catalog, a
     inventory.cleanup_temporary(now=clock(), max_age=timedelta(hours=settings.inventory_temporary_retention_hours))
     jobs = PluginJobManager(root / "runtime" / "plugin-jobs.json")
     modes = ModeRegistry(root / "runtime" / "modes.json", [jobs])
+    observations = RuntimeObservationRegistry(key)
     memory_retriever = LocalMemoryRetriever(root)
     conversation_factory = conversation_factory or OpenAIConversationFactory(
         responder_type=OpenAIResponder, maintainer_type=OpenAIMemoryMaintainer, self_time_type=OpenAISelfTimeDecider)
@@ -106,7 +108,7 @@ def build_sandbox(settings, key, root, sender, activity_modes, plugin_catalog, a
         tool_registry=ToolRegistry(), sandbox_key=key, memory_vector_store=memory_vector_store,
         memory_retriever=memory_retriever,
         appearance=(settings.anima_root / "appearance.md").read_text(encoding="utf-8"))
-    actor = PersonaActor(store=store, context_builder=ContextBuilder(root / "attachments", inventory=inventory, modes=modes),
+    actor = PersonaActor(store=store, context_builder=ContextBuilder(root / "attachments", inventory=inventory, modes=modes, observations=observations),
         responder=LimitedCalls(responder, api_limit),
         maintainer=LimitedCalls(conversation_factory.maintainer(settings), api_limit),
         memory_index=memory_vector_store, sender=sender, proactive_sender=sender, clock=clock,
@@ -196,6 +198,13 @@ def build_sandbox(settings, key, root, sender, activity_modes, plugin_catalog, a
     actor.self_time = self_time
     mode_providers = tuple(provider for plugin in plugins.instances for provider in getattr(plugin, "mode_providers", ()))
     modes.replace_providers((jobs, *mode_providers, self_time))
+    state_providers = []
+    for plugin in plugins.instances:
+        for provider in getattr(plugin, "state_providers", ()):
+            if provider.plugin != plugin.manifest.name:
+                raise ValueError("runtime state provider owner differs from plugin")
+            state_providers.append(provider)
+    observations.replace_providers(state_providers)
     self_time.modes_changed = modes.refresh
     modes.refresh()
     path = root / "runtime" / "resources.json"

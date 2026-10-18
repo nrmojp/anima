@@ -1,5 +1,8 @@
 # Architecture
 
+Per-plugin, sandbox-local current state and automatic behavior are provided through
+[runtime observations](runtime-observations.md), refreshed before each conversation model request.
+
 [Skills](skills.md) specifies the read-only instruction layer, progressive disclosure,
 plugin-packaged discovery, resource access and sandbox-local operational records.
 

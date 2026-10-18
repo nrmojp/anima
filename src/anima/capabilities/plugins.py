@@ -302,8 +302,10 @@ class BoundPlugin:
         start: object | None = None,
         stop: object | None = None,
         available: object = True,
+        state_providers: tuple = (),
     ) -> None:
         self.manifest = manifest
+        self.state_providers = state_providers
         self.tool_providers = tool_providers
         self.command_providers = command_providers
         self.resource_registrations = resource_registrations

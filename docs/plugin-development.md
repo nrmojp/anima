@@ -1,5 +1,8 @@
 # Plugin development
 
+For current-state and automatic-behavior context contributions, see
+[Runtime observations](runtime-observations.md). These do not add tools.
+
 For plugins in another application package, configure `ANIMA_PLUGIN_NAMESPACE`
 as described in [using Anima as a library](library.md). Do not copy or shadow the
 framework's `anima` package.
