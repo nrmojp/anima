@@ -7,7 +7,7 @@ def serialized_size(value):
     return len(json.dumps(value, ensure_ascii=False, separators=(",", ":"), default=str))
 
 
-def context_usage(request, prepared=None, response=None):
+def context_usage(request, prepared=None, response=None, observation_parts=()):
     rows = {}
     images = {"count": 0, "embedded_count": 0, "remote_count": 0, "payload_bytes": 0}
 
@@ -37,6 +37,8 @@ def context_usage(request, prepared=None, response=None):
     if prepared:
         for owner, text in prepared.instruction_parts:
             add(owner, "instructions", len(text))
+    for owner, text in observation_parts:
+        add(owner, "instructions", serialized_size(text) - 2)
     if response:
         for item in response.contributions:
             provider = response.routes[item.property_name]

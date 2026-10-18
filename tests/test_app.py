@@ -30,6 +30,29 @@ def settings_at(root, plugins="echo"):
 
 
 class CompositionTests(unittest.IsolatedAsyncioTestCase):
+    def test_runtime_state_plugin_registration_and_owner_guard(self):
+        from anima.core.observations import RuntimeStateProvider
+        with TemporaryDirectory() as directory:
+            settings = settings_at(Path(directory))
+            catalog = PluginLoader().load()
+            owner = ["echo"]
+            def create(*args):
+                plugins = catalog.create(*args)
+                plugins.instances[0].state_providers = (RuntimeStateProvider(owner[0], ("available",),
+                    lambda source: {"available": True}),)
+                return plugins
+            supplied = SimpleNamespace(create=create, skill_roots=catalog.skill_roots)
+            key = SandboxKey("guild", "1")
+            with patch("anima.adapters.openai.client.AsyncOpenAI"), patch("anima.bootstrap.app.AsyncOpenAI"):
+                args = (settings, key, key.path(settings.state_root), StubDiscordSender(clock=lambda: datetime.now(timezone.utc)),
+                        ActivityModeStore(settings.state_root), supplied, asyncio.Semaphore(4), lambda: None)
+                runtime = build_sandbox(*args)
+                parts = runtime.actor.context_builder.observations.collect(None)
+                self.assertEqual(parts[0][0], "echo")
+                owner[0] = "wrong"
+                with self.assertRaisesRegex(ValueError, "owner differs"):
+                    build_sandbox(*args)
+
     def test_contextual_address_composition_scope_and_mode(self):
         with TemporaryDirectory() as directory:
             settings = settings_at(Path(directory))

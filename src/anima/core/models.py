@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -451,6 +451,7 @@ class Context:
     state_version: int
     source_event: Event | None = None
     response_delay_seconds: float = 0.0
+    runtime_observations: Callable[[], tuple[tuple[str, str], ...]] | None = None
 
 
 @dataclass(frozen=True, slots=True)

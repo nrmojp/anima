@@ -837,10 +837,12 @@ class OpenAIResponder:
                 if round_number == 1
                 else _compact_tool_instructions(context.instructions)
             )
+            observation_parts = context.runtime_observations() if context.runtime_observations else ()
             request = {
                 "model": self.model,
                 "instructions": (
                     contextual_instructions + local_recall
+                    + "".join("\n\n" + text for _owner, text in observation_parts)
                     + (
                         "\n\n" + prepared_tools.contextual_instructions
                         if prepared_tools is not None
@@ -867,7 +869,7 @@ class OpenAIResponder:
                 **({"include": includes} if includes else {}),
             }
             emit("model.context.measured", operation="respond", model=self.model,
-                 round=round_number, **context_usage(request, prepared_tools, prepared_response))
+                 round=round_number, **context_usage(request, prepared_tools, prepared_response, observation_parts))
             try:
                 current_response = await self.client.responses.create(**request)
             except Exception as error:

@@ -11,6 +11,7 @@ from anima.core.models import Context, Event, StateSnapshot
 from anima.core.inventory import InventoryStore
 from anima.core.modes import ModeRegistry
 from anima.core.attention import AttentionPolicy
+from anima.core.observations import RuntimeObservationRegistry
 from anima.core.telemetry import emit
 
 
@@ -20,11 +21,13 @@ class ContextBuilder:
         inventory: InventoryStore | None = None,
         modes: ModeRegistry | None = None,
         attention: AttentionPolicy | None = None,
+        observations: RuntimeObservationRegistry | None = None,
     ) -> None:
         self.attachment_root = attachment_root
         self.inventory = inventory
         self.modes = modes
         self.attention = attention or AttentionPolicy()
+        self.observations = observations
 
     def build(
         self,
@@ -81,6 +84,8 @@ class ContextBuilder:
             response_delay_seconds=self.attention.delay(
                 source_event, occupied=bool(active_modes),
             ),
+            runtime_observations=(lambda: self.observations.collect(source_event))
+                if self.observations is not None else None,
         )
 
     @staticmethod
