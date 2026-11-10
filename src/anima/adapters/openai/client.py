@@ -962,7 +962,7 @@ class OpenAIResponder:
             OpenAIToolExecutor(prepared_tools, operation="respond", consume=consume)
             if prepared_tools is not None else None
         )
-        loop = await AgenticLoop(max_tool_rounds=4).run(
+        loop = await AgenticLoop(max_tool_rounds=10).run(
             backend=backend, executor=executor,
         )
         response = loop.result

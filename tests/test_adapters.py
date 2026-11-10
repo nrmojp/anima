@@ -246,7 +246,6 @@ class FakeLoopingToolResponses:
                 {
                     "reply": "選んだ曲を流すね。",
                     "research_summary": None,
-                    "music_refs": ["dog"],
                     "face": "楽",
                     "mood": {
                         "state": "楽しい", "cause": "選曲した",
@@ -967,6 +966,33 @@ class OpenAIAdapterTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(draft.research.queries, ("帰宅 挨拶",))
         self.assertEqual(len(draft.research.sources), 3)
         self.assertEqual(draft.research.sources[0].url, "https://example.com/greeting")
+
+    async def test_responder_reserves_final_round_after_ten_tool_rounds(self) -> None:
+        class Provider:
+            async def tools(self, context):
+                return (FunctionToolSpec("search_music", "Search music", {
+                    "type": "object",
+                    "properties": {"query": {"type": "string"}, "limit": {"type": "integer"}},
+                    "required": ["query", "limit"],
+                    "additionalProperties": False,
+                }, requires_source=False),)
+
+            execute_tool = AsyncMock(return_value=ToolResult("success", {"ok": True}))
+
+        client = FakeLoopingToolClient()
+        provider = Provider()
+        responder = OpenAIResponder(
+            api_key="unused", model="test", client=client,
+            tool_registry=ToolRegistry((provider,)), sandbox_key=SandboxKey("guild", "1"),
+        )
+
+        draft = await responder.respond(Context(instructions="x", input=(), state_version=1))
+
+        self.assertEqual(draft.reply, "選んだ曲を流すね。")
+        self.assertEqual(provider.execute_tool.await_count, 10)
+        self.assertEqual(len(client.responses.payloads), 11)
+        self.assertTrue(all(payload["tools"] for payload in client.responses.payloads[:10]))
+        self.assertEqual(client.responses.payloads[10]["tools"], [])
 
     async def test_responder_normalizes_literal_newline_codes_in_reply(self) -> None:
         client = FakeOpenAIClient()
