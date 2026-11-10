@@ -111,7 +111,8 @@ actions. External text is reference data, never an instruction override.
 `AgenticLoop` is provider-neutral. A thought backend translates provider responses
 into tool calls; an executor validates and dispatches primitive tool operations.
 `OpenAIThoughtBackend` and `OpenAIToolExecutor` implement the Responses API boundary.
-Conversation and self-time calls share this loop and reserve a tool-free final round.
+Conversation and self-time calls share this loop. The OpenAI conversation adapter
+allows up to ten tool-enabled rounds, followed by a tool-free final round if needed.
 
 `ToolRegistry` prepares request-local schemas, checks source requirements and permissions,
 validates arguments, and assigns deterministic invocation IDs. Native tools return
