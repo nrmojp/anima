@@ -509,13 +509,20 @@ class OpenAISelfTimeDecider:
     async def decide(self, context, iteration, previous):
         schema = {
             "type": "object", "additionalProperties": False,
-            "required": ["action", "note", "direction", "discovery", "mood_state", "mood_cause", "mood_strength", "mood_focus", "reflection"],
+            "required": [
+                "action", "note", "direction", "discovery", "mood_state", "mood_cause",
+                "mood_strength", "mood_focus", "reflection", "activity_key", "question",
+                "next_question",
+            ],
             "properties": {
                 "action": {"type": "string", "enum": ["none", "continue", "finish"]},
                 "note": {"type": "string", "maxLength": 500,
                          "description": "noneでは空文字。continue/finishでは空白のみ不可、実際の活動を1〜500文字で記録。"},
                 "direction": {"type": "string", "enum": ["deepen", "broaden"]},
                 "discovery": {"type": "string", "minLength": 1, "maxLength": 500},
+                "activity_key": {"type": "string", "maxLength": 240},
+                "question": {"type": "string", "maxLength": 240},
+                "next_question": {"type": "string", "maxLength": 240},
                 "mood_state": {"type": "string", "maxLength": 40},
                 "mood_cause": {"type": "string", "maxLength": 40},
                 "mood_strength": {"type": "string", "enum": ["弱い", "ふつう", "強い"]},
@@ -550,6 +557,16 @@ class OpenAISelfTimeDecider:
             "どちらへ進むかを自分で選びdirectionに記録する。"
             "直近の履歴を見て進展なく同じ対象を眺めるだけになりそうなら、"
             "別の関心を探すbroadenも検討する。ただしランダムな話題探しはしない。"
+            "ツールを呼ぶ前にcompleted_self_time_activitiesを確認する。"
+            "同じ対象と目的なら言い換えても同じactivity_keyを使う。対象の資源IDが分かる場合はキーに含める。"
+            "済んだ目的のための再読・再作成は避け、未確認のnext_questionや別の関心を選ぶ。"
+            "新しい資料や変更に基づく再訪では、その資料や変更をquestionで明示する。"
+            "活動した時はactivity_keyとquestionを記録し、具体的な続きがある時だけnext_questionを書く。"
+            "何もしない時や続きがない時の該当欄は空文字にする。"
+            "このサンドボックスは自分で試して遊べる場所でもある。気が向けば、"
+            "持ち物を組み合わせて架空の展示を考えたり、短い歌詞や小話の試作を書いたり、"
+            "いつもと違う題材で小さな絵を試したりしてよい。利用できる資源とツールから選ぶ。"
+            "試作をいくつも量産せず、あとで見返したいものを持ち物に残す。"
             "選んだ方向で何を確かめ何が分かったかをdiscoveryに短く記録する。"
             "手がかりが得られなかった時も、その結果を正直に記録する。"
             "気分、記憶、未完了事項、持ち物を組み合わせ、新しい関心や続きが見つかったなら、"

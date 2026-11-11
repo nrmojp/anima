@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Awaitable, Callable, Mapping
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime
 import json
 import logging
@@ -30,8 +30,23 @@ class SelfTimeDecision:
     reflection: str = "記録なし"
     direction: Literal["deepen", "broaden"] = "deepen"
     discovery: str = "記録なし"
+    activity_key: str = ""
+    question: str = ""
+    next_question: str = ""
+
+    def activity_record(self) -> dict[str, str]:
+        return {
+            "activity_key": self.activity_key.strip().casefold(),
+            "question": self.question,
+            "discovery": self.discovery,
+            "next_question": self.next_question,
+        }
 
     def __post_init__(self) -> None:
+        if any(len(value) > 240 for value in (
+            self.activity_key, self.question, self.next_question,
+        )):
+            raise ValueError("self-time activity metadata is too long")
         if self.action not in {"none", "continue", "finish"}:
             raise ValueError("self-time action is invalid")
         if self.direction not in {"deepen", "broaden"}:
@@ -154,6 +169,19 @@ class SelfTimeService:
         self._started_at = now.isoformat()
         self.modes_changed()
         emit("self_time.started", iteration_limit=self.max_iterations, forced=forced)
+        completed = {}
+        for entry in history:
+            decisions = entry.get("decisions", [])
+            if not isinstance(decisions, list):
+                continue
+            for record in decisions:
+                if isinstance(record, dict) and record.get("state_committed"):
+                    key = record.get("activity_key")
+                    if isinstance(key, str) and key.strip():
+                        completed[key.strip().casefold()] = {
+                            field: record.get(field, "")
+                            for field in ("question", "discovery", "next_question")
+                        }
         results: list[SelfTimeDecision] = []
         previous = None
         session = {"started_at": now.isoformat(), "trigger": "experimental" if forced else "scheduled", "status": "running", "decisions": []}
@@ -162,17 +190,35 @@ class SelfTimeService:
                 context = dict(self.context())
                 context["self_time_trigger"] = "experimental" if forced else "scheduled"
                 context["recent_self_time"] = history
+                context["completed_self_time_activities"] = dict(completed)
                 context["current_self_time"] = session["decisions"]
                 decision = await self.decider.decide(context, iteration, previous)
                 if not isinstance(decision, SelfTimeDecision):
                     raise TypeError("self-time decider returned an invalid decision")
+                activity = decision.activity_record()
+                key = activity["activity_key"]
+                duplicate = decision.action != "none" and key in completed
+                if duplicate:
+                    emit("self_time.activity.repeated", iteration=iteration)
+                    decision = replace(
+                        decision, action="none", note="",
+                        discovery="同じ目的で実施済みの活動を再記録せず終了した。",
+                        next_question=completed[key]["next_question"],
+                    )
                 results.append(decision)
                 record = {**asdict(decision), "state_committed": False}
+                if duplicate:
+                    record["skip_reason"] = "activity_already_completed"
                 session["decisions"].append(record)
                 if decision.action == "none":
                     break
                 self.commit(decision, self.clock())
                 record["state_committed"] = True
+                if key:
+                    completed[key] = {
+                        field: activity[field]
+                        for field in ("question", "discovery", "next_question")
+                    }
                 if decision.action == "finish":
                     break
                 previous = decision
