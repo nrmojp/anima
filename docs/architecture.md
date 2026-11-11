@@ -150,6 +150,14 @@ completed sessions and current-session decisions. Primitive resources are availa
 extra action tools require explicit host permission. Web search is opt-in.
 Committed notes and mood updates are persisted. The dashboard shows session summaries,
 actions, tools, and provider-supplied reasoning summaries—not hidden reasoning traces.
+Self time projects completed activities from its five most recent sessions into
+a sandbox-local index of activity keys, questions, findings, and possible follow-ups.
+The model checks it before using tools. The service ends a decision with a repeated
+key without writing another self-memory or mood entry. A distinct follow-up or a
+revisit based on changed material uses a distinct key. Existing history remains
+readable. Sandbox resources can also support playful experiments such as drafts,
+small exhibits, and sketches, with the existing tool permissions and limits.
+
 Only self time may replace `open.md`, preserving active job promises.
 
 ## Shared extension routes

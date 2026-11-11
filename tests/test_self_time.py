@@ -30,6 +30,7 @@ class SelfTimeDecisionTests(unittest.TestCase):
             {"action": "none", "direction": "random"},
             {"action": "none", "discovery": ""},
             {"action": "none", "discovery": "x" * 501},
+            {"action": "none", "activity_key": "x" * 241},
         ):
             with self.subTest(value=value), self.assertRaises(ValueError):
                 SelfTimeDecision(**value)
@@ -60,6 +61,49 @@ class SelfTimeServiceTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(saved[-1]["decisions"][0]["action"], "none")
             self.assertEqual(saved[-1]["decisions"][0]["direction"], "broaden")
             self.assertEqual(saved[-1]["decisions"][0]["discovery"], "鳥の絵から別の話題は見つからなかった")
+
+    async def test_completed_activity_is_not_committed_twice(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "state.json"
+            path.write_text(json.dumps({"history": [{"decisions": None}]}))
+            commits = []
+
+            def make(decision):
+                decider = Decider([decision])
+                service = SelfTimeService(
+                    path, decider, dict, lambda value, _: commits.append(value),
+                    clock=lambda: NOW, allowed=lambda: True, busy=lambda: False,
+                )
+                return service, decider
+
+            original = SelfTimeDecision(
+                "finish", "歌詞を比較した", activity_key="track-a+track-b:lyrics",
+                question="歌詞は同じか", discovery="同じだった", next_question="編曲はどう違うか",
+            )
+            service, _ = make(original)
+            await service.tick(forced=True)
+            repeated = SelfTimeDecision(
+                "continue", "歌詞を再確認した", activity_key=" TRACK-A+TRACK-B:LYRICS ",
+                question="歌詞に差はあるか",
+            )
+            service, decider = make(repeated)
+            result = await service.tick(forced=True)
+            self.assertEqual(result[0].action, "none")
+            self.assertEqual(result[0].next_question, original.next_question)
+            self.assertEqual(commits, [original])
+            completed = decider.last[0]["completed_self_time_activities"]
+            self.assertEqual(completed[original.activity_key]["discovery"], original.discovery)
+            record = json.loads(path.read_text())["history"][-1]["decisions"][0]
+            self.assertEqual(record["skip_reason"], "activity_already_completed")
+            self.assertFalse(record["state_committed"])
+
+            followup = SelfTimeDecision(
+                "finish", "編曲を比較した", activity_key="track-a+track-b:arrangement",
+                question=original.next_question, discovery="テンポが違った",
+            )
+            service, _ = make(followup)
+            await service.tick(forced=True)
+            self.assertEqual(commits, [original, followup])
 
     async def test_failed_commit_history_and_invalid_history(self):
         with tempfile.TemporaryDirectory() as directory:
