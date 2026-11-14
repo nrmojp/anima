@@ -306,39 +306,57 @@ class ResourceToolProvider:
                             if line.startswith(prefix)), "core"), line) for line in lines)
 
     async def tools(self, context: CapabilityContext) -> tuple[FunctionToolSpec, ...]:
-        del context
         obj = lambda properties, required: {
             "type": "object", "properties": properties, "required": required,
             "additionalProperties": False,
         }
-        collection = {"type": "string", "minLength": 3, "maxLength": 129}
+        def collection(operation: ResourceOperation) -> dict[str, object]:
+            choices = [
+                spec.id for spec in self.registry.specs
+                if operation in spec.operations
+                and (
+                    operation != "delete" or not context.permissions.allows("self_time")
+                    or (
+                        context.permissions.allows("resource.delete_temporary")
+                        and spec.id == "core.temporary_artifacts"
+                    )
+                )
+            ]
+            return {"type": "string", "enum": choices}
+
         resource_id = {"type": "string", "minLength": 1, "maxLength": 256}
-        return (
-            FunctionToolSpec("resource_list", "Collectionの項目を一覧する。", obj({
-                "collection": collection, "cursor": {"type": "string", "maxLength": 256},
+        def available_tool(name, description, parameters, **options):
+            if any(prop.get("enum") == [] for prop in parameters["properties"].values()):
+                return None
+            return FunctionToolSpec(name, description, parameters, **options)
+
+        specs = (
+            available_tool("resource_list", "Collectionの項目を一覧する。", obj({
+                "collection": collection("list"), "cursor": {"type": "string", "maxLength": 256},
                 "limit": {"type": "integer", "minimum": 1, "maximum": 50},
             }, ["collection", "cursor", "limit"]), requires_source=False),
-            FunctionToolSpec("resource_search", "Collectionを検索する。", obj({
-                "collection": collection, "query": {"type": "string", "minLength": 1, "maxLength": 2000},
+            available_tool("resource_search", "Collectionを検索する。", obj({
+                "collection": collection("search"), "query": {"type": "string", "minLength": 1, "maxLength": 2000},
                 "limit": {"type": "integer", "minimum": 1, "maximum": 10},
             }, ["collection", "query", "limit"]), requires_source=False),
-            FunctionToolSpec("resource_read", "Resourceを読む。画像は自分の確認用。相手に見せる必要がある時だけattach_to_reply=trueにする。確認・感想・会話の続きではfalse。同じ画像を毎回送り直さない。", obj({
-                "collection": collection, "resource_id": resource_id,
+            available_tool("resource_read", "Resourceを読む。画像は自分の確認用。相手に見せる必要がある時だけattach_to_reply=trueにする。確認・感想・会話の続きではfalse。同じ画像を毎回送り直さない。", obj({
+                "collection": collection("read"), "resource_id": resource_id,
                 "attach_to_reply": {"type": "boolean"},
             }, ["collection", "resource_id", "attach_to_reply"]), requires_source=False),
-            FunctionToolSpec("resource_write", "テキストResourceを作成・置換・追記する。", obj({
-                "collection": collection, "resource_id": resource_id,
+            available_tool("resource_write", "テキストResourceを作成・置換・追記する。", obj({
+                "collection": collection("write"), "resource_id": resource_id,
                 "mode": {"type": "string", "enum": ["replace", "append"]},
                 "content": {"type": "string", "minLength": 1, "maxLength": 16000},
             }, ["collection", "resource_id", "mode", "content"]), side_effect=True),
-            FunctionToolSpec("resource_transfer", "Resourceを別Collectionへ安全に移す。", obj({
-                "source_collection": collection, "source_id": resource_id,
-                "destination_collection": collection, "destination_id": resource_id,
+            available_tool("resource_transfer", "Resourceを別Collectionへ安全に移す。", obj({
+                "source_collection": collection("export"), "source_id": resource_id,
+                "destination_collection": collection("import"), "destination_id": resource_id,
             }, ["source_collection", "source_id", "destination_collection", "destination_id"]), side_effect=True),
-            FunctionToolSpec("resource_delete", "Resourceを削除する。", obj({
-                "collection": collection, "resource_id": resource_id,
+            available_tool("resource_delete", "Resourceを削除する。", obj({
+                "collection": collection("delete"), "resource_id": resource_id,
             }, ["collection", "resource_id"]), side_effect=True),
         )
+        return tuple(spec for spec in specs if spec is not None)
 
     async def execute_tool(
         self, name: str, arguments: Mapping[str, object], context: CapabilityContext,

@@ -146,6 +146,26 @@ class ResourceRegistryTests(unittest.IsolatedAsyncioTestCase):
         ), self.provider),))
         self.context = CapabilityContext(event(), KEY)
 
+    async def test_tool_schema_limits_collections_by_operation(self):
+        registry = ResourceRegistry(tuple(
+            ResourceRegistration(spec(name, frozenset(operations)), self.provider)
+            for name, operations in (
+                ("core.inventory", {"list", "read", "delete", "import"}),
+                ("core.temporary_artifacts", {"list", "delete", "export"}),
+                ("core.memory", {"search", "read"}),
+            )
+        ))
+        context = CapabilityContext(
+            event(), KEY, PermissionSet(frozenset({"self_time", "resource.delete_temporary"})),
+        )
+        tools = {tool.name: tool.parameters["properties"]
+                 for tool in await ResourceToolProvider(registry).tools(context)}
+        self.assertEqual(tools["resource_search"]["collection"]["enum"], ["core.memory"])
+        self.assertEqual(tools["resource_delete"]["collection"]["enum"], ["core.temporary_artifacts"])
+        self.assertEqual(tools["resource_transfer"]["source_collection"]["enum"], ["core.temporary_artifacts"])
+        self.assertEqual(tools["resource_transfer"]["destination_collection"]["enum"], ["core.inventory"])
+        self.assertNotIn("resource_write", tools)
+
     async def test_all_operations_and_transfer(self):
         cases = (
             ("list", {"collection": "test.items", "cursor": "", "limit": 2}),
@@ -192,7 +212,7 @@ class ResourceRegistryTests(unittest.IsolatedAsyncioTestCase):
             }, self.context)
         tools = ResourceToolProvider(restricted)
         prepared = await ToolRegistry((tools,)).prepare(self.context)
-        self.assertEqual(len(prepared.specs), 6)
+        self.assertEqual([tool.name for tool in prepared.specs], ["resource_list"])
         self.assertIn("test.items", prepared.contextual_instructions)
         self.assertIn("括弧内の操作だけ実行できる", prepared.contextual_instructions)
         self.assertEqual("".join(text for _, text in prepared.instruction_parts), prepared.contextual_instructions)

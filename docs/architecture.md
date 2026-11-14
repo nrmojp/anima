@@ -158,6 +158,9 @@ revisit based on changed material uses a distinct key. Existing history remains
 readable. Sandbox resources can also support playful experiments such as drafts,
 small exhibits, and sketches, with the existing tool permissions and limits.
 
+Resource tool schemas derive collection choices from the operations each collection supports.
+Tools with no valid collection choices are omitted.
+
 Only self time may replace `open.md`, preserving active job promises.
 
 ## Shared extension routes
