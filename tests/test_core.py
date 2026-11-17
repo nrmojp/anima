@@ -228,6 +228,23 @@ class CoreTests(unittest.IsolatedAsyncioTestCase):
         await actor.submit(source)
         self.assertEqual(calls, ["prepare", "play"])
 
+    async def test_voice_preparation_receives_the_current_draft_mood(self) -> None:
+        class Voice:
+            async def prepare_reply(self, *args):
+                raise AssertionError("expected the mood-aware preparation route")
+
+            async def prepare_reply_with_mood(self, event, text, mood_strength, *, mood_state):
+                seen.append((text, mood_strength, mood_state))
+                return None
+
+        seen = []
+        self.actor.voice = Voice()
+        source = replace(event("mood", mention=True), author_voice_channel_id="123")
+        await self.actor.submit(source)
+        draft = await self.responder.respond(self.responder.contexts[0])
+        self.assertEqual(seen, [(draft.reply, draft.mood_strength, draft.mood_state)])
+        self.assertEqual(len(self.sender.sent), 1)
+
     async def test_voice_preparation_failure_still_posts_the_reply(self) -> None:
         calls = []
 

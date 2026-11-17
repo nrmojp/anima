@@ -86,6 +86,15 @@ class PreparedVoiceSink(Protocol):
     ) -> Callable[[], Awaitable[None]] | None: ...
 
 
+@runtime_checkable
+class MoodAwarePreparedVoiceSink(PreparedVoiceSink, Protocol):
+    """A preparation port that can use the mood from the current reply."""
+
+    async def prepare_reply_with_mood(
+        self, source: Event, text: str, mood_strength: str, *, mood_state: str,
+    ) -> Callable[[], Awaitable[None]] | None: ...
+
+
 class MemoryMaintainer(Protocol):
     async def digest(self, job: DigestJob) -> str: ...
 
