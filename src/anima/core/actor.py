@@ -27,6 +27,7 @@ from anima.core.ports import (
     MemoryIndexSynchronizer,
     MemoryMaintainer,
     MessageSender,
+    MoodAwarePreparedVoiceSink,
     PreparedVoiceSink,
     ProactiveMessageSender,
     Responder,
@@ -533,7 +534,12 @@ class PersonaActor:
         play_voice = None
         if prepares_voice and event.author_voice_channel_id:
             try:
-                play_voice = await voice.prepare_reply(event, draft.reply, draft.mood_strength)
+                if isinstance(voice, MoodAwarePreparedVoiceSink):
+                    play_voice = await voice.prepare_reply_with_mood(
+                        event, draft.reply, draft.mood_strength, mood_state=draft.mood_state,
+                    )
+                else:
+                    play_voice = await voice.prepare_reply(event, draft.reply, draft.mood_strength)
             except Exception as error:
                 emit("voice.prepare_failed", event_id=event.id, error_type=type(error).__name__)
         sent = await self._send_with_retries(event, reply_text, draft.images)
