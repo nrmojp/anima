@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import Protocol, runtime_checkable
 
@@ -74,6 +75,15 @@ class FacePresenter(Protocol):
 
 class VoiceSink(Protocol):
     async def enqueue(self, source: Event, text: str, mood_strength: str) -> None: ...
+
+
+@runtime_checkable
+class PreparedVoiceSink(Protocol):
+    """Optionally prepare a VC reply and return an action to enqueue it after posting."""
+
+    async def prepare_reply(
+        self, source: Event, text: str, mood_strength: str,
+    ) -> Callable[[], Awaitable[None]] | None: ...
 
 
 class MemoryMaintainer(Protocol):
