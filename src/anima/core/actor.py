@@ -27,6 +27,7 @@ from anima.core.ports import (
     MemoryIndexSynchronizer,
     MemoryMaintainer,
     MessageSender,
+    PreparedVoiceSink,
     ProactiveMessageSender,
     Responder,
     VoiceSink,
@@ -527,6 +528,14 @@ class PersonaActor:
             reply_text = self.face_preparer.prepare_face(
                 draft.reply, draft.face, draft.mood_strength
             )
+        voice = self.voice
+        prepares_voice = isinstance(voice, PreparedVoiceSink)
+        play_voice = None
+        if prepares_voice and event.author_voice_channel_id:
+            try:
+                play_voice = await voice.prepare_reply(event, draft.reply, draft.mood_strength)
+            except Exception as error:
+                emit("voice.prepare_failed", event_id=event.id, error_type=type(error).__name__)
         sent = await self._send_with_retries(event, reply_text, draft.images)
         self.store.commit_response(
             source=event,
@@ -552,11 +561,12 @@ class PersonaActor:
                     )
             except Exception as error:
                 emit("face.failed", event_id=event.id, error_type=type(error).__name__)
-        if self.voice is not None:
-            # Voice is best-effort and starts after the durable text response.
-            # A full or unavailable voice pipeline must never fail the turn.
+        if voice is not None:
             try:
-                await self.voice.enqueue(event, draft.reply, draft.mood_strength)
+                if play_voice is not None:
+                    await play_voice()
+                elif not prepares_voice:
+                    await voice.enqueue(event, draft.reply, draft.mood_strength)
             except Exception:
                 LOGGER.exception("Could not enqueue voice for event %s", event.id)
         return ProcessOutcome(

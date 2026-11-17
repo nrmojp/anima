@@ -204,6 +204,47 @@ class CoreTests(unittest.IsolatedAsyncioTestCase):
         await self.actor.stop()
         self.temporary.cleanup()
 
+    async def test_voice_is_prepared_before_send_and_queued_after_commit(self) -> None:
+        actor = self.actor
+        sender = self.sender
+        source = replace(event("vc", mention=True), author_voice_channel_id="123")
+        calls = []
+
+        class Voice:
+            async def prepare_reply(self, event, text, mood_strength):
+                self_test.assertEqual(sender.sent, [])
+                self_test.assertFalse(actor.store.is_handled(event))
+                calls.append("prepare")
+
+                async def play():
+                    self_test.assertEqual(len(sender.sent), 1)
+                    self_test.assertTrue(actor.store.is_handled(event))
+                    calls.append("play")
+
+                return play
+
+        self_test = self
+        actor.voice = Voice()
+        await actor.submit(source)
+        self.assertEqual(calls, ["prepare", "play"])
+
+    async def test_voice_preparation_failure_still_posts_the_reply(self) -> None:
+        calls = []
+
+        class Voice:
+            async def prepare_reply(self, *args):
+                calls.append("prepare")
+                raise TimeoutError
+
+            async def enqueue(self, *args):
+                calls.append("enqueue")
+
+        self.actor.voice = Voice()
+        await self.actor.submit(replace(event("vc", mention=True), author_voice_channel_id="123"))
+        await self.actor.submit(event("text", mention=True))
+        self.assertEqual(len(self.sender.sent), 2)
+        self.assertEqual(calls, ["prepare"])
+
     async def test_unaddressed_event_is_logged_but_ignored(self) -> None:
         outcome = await self.actor.submit(event("m1"))
 
